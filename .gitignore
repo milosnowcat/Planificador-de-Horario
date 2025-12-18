@@ -20,9 +20,6 @@ localpycs/
 *.pyo
 *.pyd
 
-# Output files
-*.csv
-*.html
 
 # System files
 Thumbs.db

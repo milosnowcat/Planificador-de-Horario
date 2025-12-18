@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificador de Horario - SIIAU UDG</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Planificador de Horario Académico UDG</h1>
+            <p class="subtitle">Planea tu horario del proximo semestre de forma visual</p>
+        </header>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <!-- Panel de búsqueda -->
+                <div class="search-panel">
+                    <h2>Buscar Materias</h2>
+                    
+                    <div class="form-group">
+                        <label for="ciclo">Ciclo:</label>
+                        <select id="ciclo" class="form-control">
+                            <option value="202610">2026-A</option>
+                            <option value="202520">2025-B</option>
+                            <option value="202510">2025-A</option>                            
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="centro">Centro Universitario:</label>
+                        <select id="centro" class="form-control">
+                            <option value="">Selecciona un centro...</option>
+                            {% for codigo, nombre in centros.items() %}
+                            <option value="{{ codigo }}">{{ nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="carrera">Código de Carrera:</label>
+                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO">
+                        <small>Deja vacío para ver todas las carreras del centro</small>
+                    </div>
+
+                    <button id="btnBuscar" class="btn btn-primary">🔍 Buscar Materias</button>
+
+                    <div id="loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Buscando materias...</p>
+                    </div>
+                </div>
+
+                <!-- Lista de materias encontradas -->
+                <div id="materiasContainer" class="materias-container" style="display: none;">
+                    <h3>Materias Disponibles (<span id="totalMaterias">0</span>)</h3>
+                    <div class="search-box">
+                        <input type="text" id="filtroMaterias" class="form-control" placeholder="Filtrar por nombre...">
+                    </div>
+                    <div id="listaMaterias" class="materias-list"></div>
+                </div>
+            </div>
+
+            <!-- Calendario semanal -->
+            <div class="calendar-panel">
+                <div class="calendar-header">
+                    <h2>Mi Horario Semanal</h2>
+                    <button id="btnLimpiarHorario" class="btn btn-secondary">🗑️ Limpiar Horario</button>
+                </div>
+
+                <div class="calendar-grid" id="calendario">
+                    <!-- Header con días -->
+                    <div class="calendar-cell header">Hora</div>
+                    <div class="calendar-cell header">Lunes</div>
+                    <div class="calendar-cell header">Martes</div>
+                    <div class="calendar-cell header">Miércoles</div>
+                    <div class="calendar-cell header">Jueves</div>
+                    <div class="calendar-cell header">Viernes</div>
+                    <div class="calendar-cell header">Sábado</div>
+                </div>
+
+                <!-- Leyenda de colores -->
+                <div class="legend">
+                    <h4>Materias agregadas:</h4>
+                    <div id="legendItems" class="legend-items">
+                        <p class="empty-message">No hay materias agregadas aún</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=5"></script>
+</body>
+</html>
