@@ -158,10 +158,10 @@ document.getElementById('filtroMaterias').addEventListener('input', (e) => {
 // Agregar materia al horario
 function agregarMateriaAlHorario(materia) {
     // Verificar conflictos
-    if (tieneConflicto(materia)) {
-        if (!confirm('Esta materia tiene conflicto de horario con otra ya agregada.')) {
-            return;
-        }
+    const conflicto = obtenerConflicto(materia);
+    if (conflicto) {
+        mostrarErrorConflicto(materia, conflicto);
+        return;
     }
     
     // Asignar color
@@ -177,18 +177,69 @@ function agregarMateriaAlHorario(materia) {
     mostrarMaterias(materiasCargadas);
 }
 
-// Verificar conflictos de horario
-function tieneConflicto(nuevaMateria) {
+// Obtener información del conflicto
+function obtenerConflicto(nuevaMateria) {
     for (const materiaExistente of materiasAgregadas) {
         for (const horarioNuevo of nuevaMateria.horarios) {
             for (const horarioExistente of materiaExistente.horarios) {
                 if (hayTraslape(horarioNuevo, horarioExistente)) {
-                    return true;
+                    return {
+                        materiaExistente: materiaExistente,
+                        horarioConflicto: horarioExistente
+                    };
                 }
             }
         }
     }
-    return false;
+    return null;
+}
+
+// Mostrar error visual de conflicto
+function mostrarErrorConflicto(nuevaMateria, conflicto) {
+    // Remover modal anterior si existe
+    const modalAnterior = document.getElementById('conflictoModal');
+    if (modalAnterior) modalAnterior.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'conflictoModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content modal-error">
+            <div class="modal-header">
+                <span class="modal-icon">⚠️</span>
+                <h3>Conflicto de Horario</h3>
+            </div>
+            <div class="modal-body">
+                <p>La materia <strong>${nuevaMateria.Materia}</strong> tiene conflicto con:</p>
+                <div class="conflicto-info">
+                    <div class="conflicto-materia" style="border-left-color: ${conflicto.materiaExistente.color}">
+                        <strong>${conflicto.materiaExistente.Materia}</strong>
+                        <span>${conflicto.horarioConflicto.dias} ${conflicto.horarioConflicto.horas}</span>
+                    </div>
+                </div>
+                <p class="modal-hint">No es posible agregar materias con horarios que se traslapen.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-modal-close" onclick="cerrarModal()">Entendido</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Cerrar al hacer clic fuera
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) cerrarModal();
+    });
+}
+
+// Cerrar modal
+function cerrarModal() {
+    const modal = document.getElementById('conflictoModal');
+    if (modal) {
+        modal.classList.add('modal-closing');
+        setTimeout(() => modal.remove(), 200);
+    }
 }
 
 // Verificar traslape de horarios

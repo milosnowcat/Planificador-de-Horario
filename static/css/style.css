@@ -173,10 +173,6 @@ header h1 {
     margin-bottom: 15px;
 }
 
-.materias-list {
-    /* Lista de materias */
-}
-
 .materia-item {
     background: white;
     padding: 15px;
@@ -402,10 +398,150 @@ header h1 {
     background: #764ba2;
 }
 
+/* Modal de conflicto */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-overlay.modal-closing {
+    animation: fadeOut 0.2s ease forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease;
+    overflow: hidden;
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-error .modal-header {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+    color: white;
+    padding: 20px 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-icon {
+    font-size: 1.8em;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-body p {
+    margin-bottom: 15px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.conflicto-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.conflicto-materia {
+    border-left: 4px solid;
+    padding-left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.conflicto-materia strong {
+    color: #333;
+    font-size: 1em;
+}
+
+.conflicto-materia span {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.modal-hint {
+    font-size: 0.9em;
+    color: #888 !important;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.modal-actions {
+    padding: 15px 25px 25px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-modal-close {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 35px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-modal-close:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .main-content {
         grid-template-columns: 1fr;
+    }
+    
+    .left-panel {
+        height: auto;
+        max-height: none;
+        overflow: visible;
     }
     
     .calendar-grid {
@@ -414,12 +550,195 @@ header h1 {
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        border-radius: 10px;
+    }
+    
+    header {
+        padding: 20px 15px;
+    }
+    
+    header h1 {
+        font-size: 1.5em;
+    }
+    
+    .subtitle {
+        font-size: 0.9em;
+    }
+    
+    .main-content {
+        padding: 10px;
+        gap: 15px;
+    }
+    
+    .left-panel {
+        padding: 10px;
+        gap: 15px;
+    }
+    
+    .search-panel {
+        padding: 15px;
+    }
+    
+    .search-panel h2 {
+        font-size: 1.2em;
+        margin-bottom: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 12px;
+    }
+    
+    .form-control {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    
+    .materias-container {
+        padding: 15px;
+    }
+    
+    .materias-container h3 {
+        font-size: 1.1em;
+    }
+    
+    .materia-item {
+        padding: 12px;
+    }
+    
+    .materia-nombre {
+        font-size: 14px;
+    }
+    
+    .materia-info {
+        font-size: 11px;
+    }
+    
+    .calendar-panel {
+        padding: 15px;
+    }
+    
+    .calendar-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .calendar-header h2 {
+        font-size: 1.2em;
+    }
+    
     .calendar-grid {
-        font-size: 10px;
+        grid-template-columns: 45px repeat(6, 1fr);
+        font-size: 9px;
     }
     
     .calendar-cell {
-        padding: 5px;
-        min-height: 50px;
+        height: 50px;
+    }
+    
+    .calendar-cell.header {
+        padding: 8px 2px;
+        font-size: 10px;
+    }
+    
+    .calendar-cell.time {
+        font-size: 9px;
+    }
+    
+    .clase-block {
+        padding: 2px 3px;
+        font-size: 8px;
+    }
+    
+    .clase-nombre {
+        font-size: 8px;
+        margin-bottom: 1px;
+    }
+    
+    .clase-info {
+        font-size: 7px;
+    }
+    
+    .clase-remove {
+        width: 14px;
+        height: 14px;
+        font-size: 10px;
+        top: 2px;
+        right: 2px;
+    }
+    
+    .legend {
+        padding: 10px;
+    }
+    
+    .legend h4 {
+        font-size: 13px;
+    }
+    
+    .legend-items {
+        gap: 8px;
+    }
+    
+    .legend-item {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+    
+    .legend-color {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .legend-text {
+        font-size: 11px;
+    }
+    
+    .legend-remove {
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.2em;
+    }
+    
+    .calendar-grid {
+        grid-template-columns: 35px repeat(6, 1fr);
+    }
+    
+    .calendar-cell.header {
+        font-size: 8px;
+        padding: 6px 1px;
+    }
+    
+    .calendar-cell.time {
+        font-size: 8px;
+    }
+    
+    .calendar-cell {
+        height: 45px;
+    }
+    
+    .clase-block {
+        padding: 1px 2px;
+        font-size: 7px;
+    }
+    
+    .btn-secondary {
+        font-size: 12px;
+        padding: 8px 12px;
     }
 }
