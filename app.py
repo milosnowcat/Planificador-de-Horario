@@ -231,7 +231,7 @@ def buscar_materias():
         data = request.json
         centro = data.get('centro', '')
         carrera = data.get('carrera', '')
-        ciclo = data.get('ciclo', '202520')
+        ciclo = data.get('ciclo', '')
 
         # Construir payload
         payload = {

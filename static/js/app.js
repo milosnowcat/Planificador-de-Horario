@@ -130,7 +130,7 @@ function mostrarMaterias(materias) {
         
         item.innerHTML = `
             <div class="materia-nombre">${materia.Materia}</div>
-            <div class="materia-info">NRC: ${materia.NRC} | Sección: ${materia.Sec}</div>
+            <div class="materia-info">Clave: ${materia.Clave} | NRC: ${materia.NRC} | Sección: ${materia.Sec}</div>
             <div class="materia-info">Profesor: ${materia.Profesor}</div>
             <div class="materia-info">Créditos: ${materia.CR} | Disponibles: ${materia.DIS}</div>
             ${horariosHtml}
@@ -150,7 +150,8 @@ document.getElementById('filtroMaterias').addEventListener('input', (e) => {
     const materiasFiltradas = materiasCargadas.filter(m => 
         m.Materia.toLowerCase().includes(filtro) ||
         m.Profesor.toLowerCase().includes(filtro) ||
-        m.NRC.includes(filtro)
+        m.NRC.includes(filtro) ||
+        m.Clave.toLowerCase().includes(filtro)
     );
     mostrarMaterias(materiasFiltradas);
 });
