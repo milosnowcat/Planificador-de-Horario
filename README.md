@@ -75,7 +75,6 @@ La aplicación cuenta con:
 ```
 Avanzadas-UDG/
 ├── app.py                 # Aplicación web Flask
-├── gui.py                 # Aplicación de escritorio (Tkinter)
 ├── requirements.txt       # Dependencias
 ├── templates/
 │   └── index.html        # Plantilla HTML principal
@@ -100,4 +99,5 @@ Avanzadas-UDG/
 Desarrollado por Moises Ibañez
 
 Para más información, consulta la documentación incluida o contacta al desarrollador.
+
 
