@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planificador de Horario - SIIAU UDG</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Planificador de Horario Académico UDG</h1>
+            <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+            <h1>Planificador de Horario UDG</h1>
             <p class="subtitle">Planea tu horario del proximo semestre de forma visual</p>
         </header>
 
@@ -54,15 +55,19 @@
                 </div>
 
                 <!-- Lista de materias encontradas -->
-                <div id="materiasContainer" class="materias-container" style="display: none;">
-                    <h3>Materias Disponibles (<span id="totalMaterias">0</span>)</h3>
-                    <div class="search-box">
-                        <input type="text" id="filtroMaterias" class="form-control" placeholder="Filtrar por nombre...">
+                <div id="materiasContainer" class="materias-container" style="display: none;"> 
+                    <div class="materias-header">
+                        <h3>Materias Disponibles (<span id="totalMaterias">0</span>)</h3>
+                        <div class="search-box">
+                            <input type="text" id="filtroMaterias" class="form-control" placeholder="Filtrar por nombre...">
+                        </div>
                     </div>
-                    <div id="listaMaterias" class="materias-list"></div>
+
+                    <div id="listaMaterias" class="materias-list">
+                        </div>
+
                 </div>
             </div>
-
             <!-- Calendario semanal -->
             <div class="calendar-panel">
                 <div class="calendar-header">

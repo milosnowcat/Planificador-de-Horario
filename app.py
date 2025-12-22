@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from livereload import Server
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -273,4 +274,10 @@ def get_centros():
     return jsonify(CENTROS)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    server = Server(app.wsgi_app)
+
+    server.watch('templates/*.html')
+    server.watch('static/css/*.css')
+    server.watch('static/js/*.js')
+
+    server.serve(port=5000)

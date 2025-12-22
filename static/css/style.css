@@ -155,12 +155,25 @@ header h1 {
 /* Materias container */
 .materias-container {
     background: rgb(255, 255, 255);
-    height: calc(100vh - 10px);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: block;
+    overflow: hidden;
+}
+
+.materias-header{
+    margin-bottom: 15px;
+}
+
+.materias-list {
+    height: calc(100vh - 450px);
     overflow-y: auto;
-    min-height: 10;
+    padding-right: 5px;
+
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+
 }
 
 .materias-container h3 {
