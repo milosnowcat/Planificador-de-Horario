@@ -284,10 +284,35 @@ def auth_register():
         flash('Email y contraseña requeridos', 'error')
         return redirect(url_for('login_view'))
     res = supabase_sign_up(email, password)
-    if not res or 'user' not in res:
-        flash('Error al registrar', 'error')
+    if not res:
+        flash('Error de conexión con el servicio de autenticación', 'error')
         return redirect(url_for('login_view'))
-    user = res.get('user')
+
+    # Verificar si la respuesta contiene 'user' o es el objeto usuario directamente
+    user = None
+    if 'user' in res:
+        user = res['user']
+    elif 'id' in res and 'email' in res:
+        user = res
+
+    if not user:
+        # Intentar obtener mensaje de error específico
+        error_msg = res.get('msg') or res.get('error_description') or res.get('message') or res.get('error')
+        
+        if not error_msg:
+            error_msg = f"Respuesta desconocida del servidor: {res}"
+        
+        error_str = str(error_msg)
+
+        if "security purposes" in error_str and "seconds" in error_str:
+             flash('Por seguridad, debes esperar unos segundos antes de intentar registrarte de nuevo.', 'error')
+        elif "User already registered" in error_str:
+             flash('Este correo ya está registrado. Intenta iniciar sesión.', 'error')
+        else:
+             flash(f'Error al registrar: {error_str}', 'error')
+        
+        return redirect(url_for('login_view'))
+
     user_id = user.get('id') if user else None
     # Intentar crear profile en la base de datos usando Service Role (backend)
     if user_id:
@@ -300,7 +325,7 @@ def auth_register():
         except Exception as e:
             app.logger.exception('Error al crear profile: %s', e)
 
-    flash('Registro realizado. Revisa tu correo (incluido el correo no deseado) y confirma el enlace para activar tu cuenta.', 'success')
+    flash('Registro exitoso. Por favor revise su correo (y la carpeta de no deseados) para confirmar su cuenta y poder iniciar sesión.', 'success')
     return redirect(url_for('login_view'))
 
 
