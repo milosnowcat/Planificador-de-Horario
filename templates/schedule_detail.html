@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ schedule.name }} - Planificador UDG</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .horario-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(6, 1fr);
+      gap: 1px;
+      background: #e6e9ef;
+      border: 2px solid #e6e9ef;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .horario-header, .horario-cell {
+      background: white;
+      padding: 8px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      border-right: 1px solid #e6e9ef;
+      border-bottom: 1px solid #e6e9ef;
+    }
+    
+    .horario-cell {
+      font-weight: normal;
+      min-height: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .horario-header {
+      background: var(--primary-600);
+      color: white;
+      border: none;
+    }
+    
+    .horario-cell.vacio {
+      background: #f8fafc;
+    }
+    
+    .clase-item {
+      background: linear-gradient(135deg, rgba(90,103,216,0.1) 0%, rgba(90,103,216,0.05) 100%);
+      border-left: 4px solid var(--primary-600);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #0f172a;
+      margin-bottom: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .clase-item strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 2px;
+      color: var(--primary-700);
+    }
+    
+    .clase-item .clase-info {
+      font-size: 10px;
+      color: #6b7280;
+      margin: 1px 0;
+    }
+    
+    .vacio-msg {
+      text-align: center;
+      color: #9ca3af;
+      padding: 40px 20px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 2px dashed #e6e9ef;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages" style="padding: 20px 20px 0 20px;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <header>
+      <div>
+        <h1>{{ schedule.name }}</h1>
+        <div class="subtitle">Ver y gestionar tu horario guardado</div>
+      </div>
+      <div>
+        <a href="/dashboard" class="btn">← Volver al Dashboard</a>
+      </div>
+    </header>
+
+    <div style="padding: 40px; max-width: 1400px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: 1fr 320px; gap: 24px; margin-bottom: 40px;">
+        
+        <!-- Información del horario -->
+        <div style="background: var(--surface); padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <h2 style="margin-bottom: 20px; color: var(--primary-600);">📋 Información del Horario</h2>
+          
+          <div style="display: grid; gap: 16px;">
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
+              <p style="color: var(--muted); font-size: 13px; margin: 0 0 4px 0;">Nombre</p>
+              <p style="margin: 0; font-size: 16px; font-weight: 600;">{{ schedule.name }}</p>
+            </div>
+
+            {% if schedule.created_at %}
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
+              <p style="color: var(--muted); font-size: 13px; margin: 0 0 4px 0;">Creado</p>
+              <p style="margin: 0; font-size: 14px;">{{ schedule.created_at[:10] }}</p>
+            </div>
+            {% endif %}
+
+            {% if schedule.color %}
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+              <p style="color: var(--muted); font-size: 13px; margin: 0;">Color</p>
+              <div style="width: 50px; height: 50px; background: {{ schedule.color }}; border-radius: 8px; border: 2px solid #e6e9ef; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+            </div>
+            {% endif %}
+
+            {% if schedule.notes %}
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
+              <p style="color: var(--muted); font-size: 13px; margin: 0 0 4px 0;">Notas</p>
+              <p style="margin: 0; white-space: pre-wrap; font-size: 13px; line-height: 1.5;">{{ schedule.notes }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Panel de acciones -->
+        <aside style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px;">
+          <h3 style="margin-bottom: 16px; color: var(--primary-600); font-size: 16px;">Acciones</h3>
+          <div style="display: grid; gap: 8px;">
+            <button id="btnEditar" class="btn btn-primary" type="button" style="background: var(--primary-600); color: white; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">✏️ Editar</button>
+            
+            {% if is_pro %}
+            <a href="/schedules/{{ schedule.id }}/download-pdf" class="btn btn-outline" style="background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; text-decoration: none; text-align: center; cursor: pointer; font-weight: 600;">📄 Descargar PDF</a>
+            {% else %}
+            <button class="btn btn-outline" type="button" disabled style="cursor: not-allowed; opacity: 0.5; background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; font-weight: 600;" title="Solo disponible en Plan Pro">📄 Descargar PDF</button>
+            {% endif %}
+            
+            {% if is_pro %}
+            <button id="btnCompartir" class="btn btn-outline" type="button" style="background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">🔗 Compartir</button>
+            {% else %}
+            <button class="btn btn-outline" type="button" disabled style="cursor: not-allowed; opacity: 0.5; background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; font-weight: 600;" title="Solo disponible en Plan Pro">🔗 Compartir</button>
+            {% endif %}
+            
+            <button id="btnEliminar" class="btn" style="background: #ef4444; color: white; margin-top: 8px; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;" type="button">🗑️ Eliminar</button>
+          </div>
+
+          {% if not is_pro %}
+          <div style="margin-top: 16px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+            <p style="color: #856404; font-size: 13px; margin: 0 0 8px 0;">
+              <strong>Plan Gratis</strong>
+            </p>
+            <p style="color: #856404; font-size: 12px; margin: 0 0 8px 0;">
+              PDF y Compartir disponibles solo en Plan Pro.
+            </p>
+            <a href="/pricing" style="color: #856404; text-decoration: underline; font-size: 12px; font-weight: 600;">Ver planes →</a>
+          </div>
+          {% endif %}
+        </aside>
+      </div>
+
+      <!-- Visualización del horario -->
+      <div style="background: var(--surface); padding: 28px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 40px;">
+        <h2 style="margin-bottom: 20px; color: var(--primary-600);">📅 Vista del Horario</h2>
+        
+        <div id="horarioContainer">
+          <!-- Calendario grid -->
+          <div id="calendar" style="display: grid; grid-template-columns: 60px repeat(6, 1fr); gap: 4px; background: #e6e9ef; padding: 8px; border-radius: 8px; max-width: 100%; overflow-x: auto;">
+            <!-- Header días -->
+            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;"></div>
+            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Lunes</div>
+            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Martes</div>
+            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Miércoles</div>
+            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Jueves</div>
+            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Viernes</div>
+            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Sábado</div>
+            
+            <!-- Generado por JavaScript -->
+          </div>
+          
+          <!-- Leyenda de materias -->
+          <div id="materiasLegend" style="margin-top: 20px;"></div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="/dashboard" class="btn btn-outline">Volver al Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de edición -->
+  <div id="editModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+    <div style="background: var(--surface); padding: 28px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+      <h3 style="margin-bottom: 20px; color: #0f172a; font-size: 18px;">✏️ Editar Horario</h3>
+      
+      <form id="editForm" method="POST" style="display: grid; gap: 16px;">
+        <!-- Nombre -->
+        <div>
+          <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 8px; font-weight: 600;">Nombre del horario</label>
+          <input class="form-control" type="text" name="name" id="editName" placeholder="Ej: Semestre 2025" required style="padding: 10px; border: 1px solid #e6e9ef; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box;">
+        </div>
+        
+        <!-- Color y Notas eliminados -->
+
+        <!-- Materias -->
+        <div>
+          <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 8px; font-weight: 600;">Materias</label>
+          <div id="editMateriasList" style="border: 1px solid #e6e9ef; border-radius: 6px; max-height: 200px; overflow-y: auto; background: #f8fafc;">
+            <!-- Items populated by JS -->
+          </div>
+          <input type="hidden" name="deleted_items" id="deletedItemsInput">
+        </div>
+        
+        <!-- Botones -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; border-top: 1px solid #e6e9ef; padding-top: 16px;">
+          <button class="btn btn-primary" type="submit" style="background: var(--primary-600); color: white; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">💾 Guardar cambios</button>
+          <button class="btn btn-outline" type="button" onclick="cerrarModal()" style="background: #f8fafc; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const scheduleId = '{{ schedule.id }}';
+    const scheduleName = '{{ schedule.name }}';
+    const scheduleColor = '{{ schedule.color or "#e6e9ef" }}';
+    const scheduleNotes = `{{ schedule.notes or "" }}`;
+    const scheduleData = {{ (schedule.metadata if schedule.metadata else {}) | tojson }};
+    const scheduleItems = {{ schedule_items | tojson if schedule_items else "[]" }};
+    
+    // Debug: Log schedule data
+    console.log('Full schedule object:', {{ schedule | tojson }});
+    console.log('Schedule metadata:', scheduleData);
+    console.log('Schedule items:', scheduleItems);
+
+    // Convert schedule_items to metadata format if available
+    function prepareScheduleData() {
+      if (Array.isArray(scheduleItems) && scheduleItems.length > 0) {
+        // Create a lookup map from metadata for extra info (NRC, Profesor)
+        const metaLookup = {};
+        if (scheduleData && scheduleData.materias) {
+            scheduleData.materias.forEach(m => {
+                if (m.Materia) metaLookup[m.Materia] = m;
+            });
+        }
+
+        // Group items by course
+        const materias = {};
+        scheduleItems.forEach(item => {
+          const key = item.course_code || item.title;
+          if (!materias[key]) {
+            // Try to find extra info in metadata
+            const meta = metaLookup[item.title] || {};
+            
+            materias[key] = {
+              Materia: item.title,
+              Profesor: item.instructor || meta.Profesor || '',
+              NRC: item.nrc || meta.NRC || '',
+              Clave: item.course_code || meta.Clave || '',
+              color: meta.color || '#5a67d8',
+              horarios: []
+            };
+          }
+          materias[key].horarios.push({
+            horas: `${item.start_time}-${item.end_time}`,
+            dias: item.day,
+            edificio: item.building,
+            aula: item.room
+          });
+        });
+        return { materias: Object.values(materias) };
+      }
+      return scheduleData;
+    }
+    
+    const finalScheduleData = prepareScheduleData();
+
+    // ===== RENDERIZAR HORARIO =====
+    function renderizarHorarioVisual() {
+      console.log('Datos del horario:', finalScheduleData);
+      
+      // Debug info
+      const debugDiv = document.getElementById('debug-info');
+      if (debugDiv) {
+          debugDiv.innerHTML = `Loaded ${finalScheduleData.materias ? finalScheduleData.materias.length : 0} courses.`;
+      }
+
+      if (!finalScheduleData || !finalScheduleData.materias || finalScheduleData.materias.length === 0) {
+        document.getElementById('calendar').innerHTML += `
+          <div style="grid-column: 1/-1; padding: 20px; text-align: center; color: #9ca3af;">
+            📋 Sin materias asignadas
+          </div>
+        `;
+        return;
+      }
+
+      // Crear celdas del calendario
+      const calendar = document.getElementById('calendar');
+      const dias = [1, 2, 3, 4, 5, 6]; // L, M, W, J, V, S
+      
+      // Determinar rango de horas dinámicamente
+      let minHora = 7;
+      let maxHora = 21;
+
+      finalScheduleData.materias.forEach(m => {
+        if (m.horarios) {
+          m.horarios.forEach(h => {
+            const [start, end] = parseHoras(h.horas);
+            if (start !== null) {
+              if (start < minHora) minHora = Math.floor(start);
+              if (end !== null && end > maxHora) maxHora = Math.ceil(end);
+            }
+          });
+        }
+      });
+
+      // Crear filas para cada hora
+      for (let hora = minHora; hora < maxHora; hora++) {
+        // Etiqueta de hora
+        const horaLabel = document.createElement('div');
+        horaLabel.style.cssText = 'font-weight: 600; padding: 8px; text-align: center; font-size: 11px; background: #f0f4ff; border-radius: 4px;';
+        horaLabel.textContent = `${hora}:00`;
+        calendar.appendChild(horaLabel);
+        
+        // Celdas para cada día
+        dias.forEach(dia => {
+          const celda = document.createElement('div');
+          celda.className = 'calendar-cell';
+          celda.dataset.hora = hora;
+          celda.dataset.dia = dia;
+          celda.style.cssText = `
+            background: white;
+            border-radius: 4px;
+            height: 60px; /* Fixed height for pixel calculation */
+            position: relative;
+            /* overflow: hidden; REMOVED to allow spanning */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            /* z-index removed to avoid stacking context issues */
+          `;
+          calendar.appendChild(celda);
+        });
+      }
+      
+      // Renderizar materias
+      finalScheduleData.materias.forEach(materia => {
+        if (!materia.horarios) return;
+        
+        materia.horarios.forEach(horario => {
+          const [horaInicio, horaFin] = parseHoras(horario.horas);
+          if (horaInicio === null || horaFin === null) {
+              console.warn('Invalid time for:', materia.Materia, horario.horas);
+              return;
+          }
+          
+          const dias2 = parseDias(horario.dias);
+          if (dias2.length === 0) {
+              console.warn('No days found for:', materia.Materia, horario.dias);
+          }
+
+          dias2.forEach(dia => {
+            const celda = document.querySelector(
+              `.calendar-cell[data-hora="${Math.floor(horaInicio)}"][data-dia="${dia}"]`
+            );
+            
+            if (celda) {
+              const bloque = document.createElement('div');
+              bloque.className = 'clase-block';
+              
+              // Calcular altura y posición en PIXELES para mayor precisión
+              const duration = horaFin - horaInicio;
+              const offset = horaInicio - Math.floor(horaInicio);
+              
+              // 60px por hora, 4px de gap
+              // Altura = (horas * 60) + (gaps cruzados * 4)
+              const gapsCrossed = Math.floor(horaFin - 0.001) - Math.floor(horaInicio);
+              const heightPx = (duration * 60) + (gapsCrossed * 4);
+              const topPx = (offset * 60); // Offset dentro de la celda inicial
+
+              bloque.style.top = `${topPx}px`;
+              bloque.style.height = `${heightPx}px`;
+              bloque.style.backgroundColor = materia.color || '#5a67d8';
+              
+              bloque.title = `${materia.Materia}\n${horario.horas}\n${horario.aula || ''}`;
+              
+              bloque.innerHTML = `
+                <div class="clase-title">${materia.Materia}</div>
+                <div class="clase-info">${horario.horas}</div>
+                <div class="clase-info" style="opacity: 0.8;">${horario.aula || ''}</div>
+              `;
+              
+              celda.appendChild(bloque);
+            } else {
+                console.warn('No se encontró celda para:', horaInicio, dia);
+            }
+          });
+        });
+      });
+      
+      // Leyenda
+      const leyenda = document.getElementById('materiasLegend');
+      let html = '<h4 style="margin: 0 0 12px 0; color: var(--primary-600);">📚 Materias Guardadas</h4>';
+      html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;">';
+      
+      finalScheduleData.materias.forEach(m => {
+        html += `
+          <div style="padding: 12px; background: ${m.color || '#5a67d8'}15; border-left: 4px solid ${m.color || '#5a67d8'}; border-radius: 6px;">
+            <div style="font-weight: 600; color: ${m.color || '#5a67d8'};">${m.Materia}</div>
+            <div style="font-size: 12px; color: #6b7280; margin: 4px 0;">NRC: ${m.NRC}</div>
+            <div style="font-size: 11px; color: #9ca3af;">Docente: ${m.Profesor || 'N/A'}</div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      leyenda.innerHTML = html;
+    }
+    
+    function parseHoras(horasStr) {
+      if (!horasStr || horasStr.includes('null') || horasStr.includes('undefined')) return [null, null];
+      const partes = horasStr.split('-');
+      if (partes.length < 2) return [null, null];
+      
+      const parseTime = (t) => {
+        if (!t) return null;
+        t = t.toString().trim();
+        
+        // Handle HH:MM:SS or HH:MM
+        if (t.includes(':')) {
+            const parts = t.split(':');
+            const h = parseInt(parts[0]);
+            const m = parseInt(parts[1] || 0);
+            if (isNaN(h)) return null;
+            return h + (m / 60);
+        }
+        
+        // Fallback para formato HHMM o número simple
+        const val = parseFloat(t);
+        if (isNaN(val)) return null;
+        if (val > 100) return Math.floor(val / 100) + (val % 100) / 60;
+        return val;
+      };
+
+      const start = parseTime(partes[0]);
+      const end = parseTime(partes[1]);
+      
+      if (start === null || end === null || isNaN(start) || isNaN(end)) return [null, null];
+      return [start, end];
+    }
+    
+    function parseDias(diasStr) {
+      if (diasStr === null || diasStr === undefined) return [];
+      
+      // Si es número directo (ej: 1, 2, 3...)
+      if (typeof diasStr === 'number') return [diasStr];
+      
+      // Si es string
+      if (typeof diasStr === 'string') {
+          // Intentar parsear como número primero (ej: "1", "2")
+          const num = parseInt(diasStr);
+          // Si es un número válido y no contiene letras (para evitar confundir "L" con algo más si pasara)
+          // Asumimos que si es solo dígitos es un día numérico
+          if (!isNaN(num) && /^\d+$/.test(diasStr.trim())) {
+              return [num];
+          }
+
+          // Parsear formato de letras (ej: "L . I . .")
+          const dias = [];
+          const s = diasStr.toUpperCase();
+          if (s.includes('L')) dias.push(1); // Lunes
+          if (s.includes('M')) dias.push(2); // Martes
+          if (s.includes('I') || s.includes('W') || s.includes('MI')) dias.push(3); // Miércoles
+          if (s.includes('J')) dias.push(4); // Jueves
+          if (s.includes('V')) dias.push(5); // Viernes
+          if (s.includes('S')) dias.push(6); // Sábado
+          return dias;
+      }
+      return [];
+    }
+
+    // ===== EDITAR =====
+    let deletedIds = [];
+    let metadataDeletedIndices = [];
+
+    document.getElementById('btnEditar').addEventListener('click', function() {
+      document.getElementById('editName').value = scheduleName;
+      // document.getElementById('editColor').value = scheduleColor;
+      // document.getElementById('editNotes').value = scheduleNotes;
+      // actualizarPreviewColor(scheduleColor);
+      
+      // Reset deleted items
+      deletedIds = [];
+      metadataDeletedIndices = [];
+      document.getElementById('deletedItemsInput').value = '';
+      const metaInput = document.getElementById('metadataMateriasInput');
+      if (metaInput) metaInput.value = '';
+      
+      renderEditMaterias();
+      
+      document.getElementById('editForm').action = `/schedules/${scheduleId}/edit`;
+      document.getElementById('editModal').style.display = 'flex';
+    });
+
+    function renderEditMaterias() {
+        const container = document.getElementById('editMateriasList');
+        container.innerHTML = '';
+        
+        // Check if we have DB items (new format)
+        if (scheduleItems && scheduleItems.length > 0) {
+            // Group by course code/title to show unique courses
+            const grouped = {};
+            scheduleItems.forEach(item => {
+                const key = item.course_code || item.title;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        title: item.title,
+                        code: item.course_code,
+                        ids: []
+                    };
+                }
+                grouped[key].ids.push(item.id);
+            });
+
+            Object.values(grouped).forEach(group => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #e6e9ef; background: white;';
+                div.innerHTML = `
+                    <div style="font-size: 13px;">
+                        <div style="font-weight: 600; color: #1e293b;">${group.title}</div>
+                        <div style="font-size: 11px; color: #64748b;">${group.code || ''}</div>
+                    </div>
+                    <button type="button" class="btn-delete-item" style="background: #fee2e2; color: #ef4444; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Eliminar</button>
+                `;
+                
+                const btn = div.querySelector('.btn-delete-item');
+                btn.onclick = function() {
+                    if(confirm('¿Eliminar esta materia del horario?')) {
+                        markAsDeleted(group.ids);
+                        div.style.opacity = '0.5';
+                        div.style.textDecoration = 'line-through';
+                        btn.disabled = true;
+                        btn.textContent = 'Eliminado';
+                    }
+                };
+                
+                container.appendChild(div);
+            });
+        } 
+        // Check if we have metadata items (legacy format)
+        else if (finalScheduleData && finalScheduleData.materias && finalScheduleData.materias.length > 0) {
+             const warning = document.createElement('div');
+             warning.style.cssText = 'padding: 8px; background: #fff7ed; color: #c2410c; font-size: 11px; margin-bottom: 8px; border-radius: 4px; text-align: center;';
+             warning.textContent = 'Modo compatibilidad: Editando metadatos directamente.';
+             container.appendChild(warning);
+
+             // Clone array to avoid modifying original until save
+             const currentMaterias = [...finalScheduleData.materias];
+
+             currentMaterias.forEach((materia, index) => {
+                 const div = document.createElement('div');
+                 div.id = `meta-item-${index}`;
+                 div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #e6e9ef; background: white;';
+                 div.innerHTML = `
+                    <div style="font-size: 13px;">
+                        <div style="font-weight: 600; color: #1e293b;">${materia.Materia}</div>
+                        <div style="font-size: 11px; color: #64748b;">${materia.Clave || materia.NRC || ''}</div>
+                    </div>
+                    <button type="button" class="btn-delete-meta" style="background: #fee2e2; color: #ef4444; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Eliminar</button>
+                 `;
+                 
+                 const btn = div.querySelector('.btn-delete-meta');
+                 btn.onclick = function() {
+                     if(confirm('¿Eliminar esta materia?')) {
+                         div.style.opacity = '0.5';
+                         div.style.textDecoration = 'line-through';
+                         btn.disabled = true;
+                         btn.textContent = 'Eliminado';
+                         markMetadataDeleted(index);
+                     }
+                 };
+
+                 container.appendChild(div);
+             });
+        }
+        else {
+            container.innerHTML = '<div style="padding: 12px; color: #9ca3af; font-size: 13px; text-align: center;">No hay materias registradas</div>';
+        }
+    }
+
+    function markAsDeleted(ids) {
+        deletedIds.push(...ids);
+        document.getElementById('deletedItemsInput').value = deletedIds.join(',');
+    }
+    
+    // let metadataDeletedIndices = []; // Already declared above
+    function markMetadataDeleted(index) {
+        metadataDeletedIndices.push(index);
+        updateMetadataInput();
+    }
+    
+    function updateMetadataInput() {
+        if (!finalScheduleData || !finalScheduleData.materias) return;
+        
+        // Filter out deleted items
+        const newMaterias = finalScheduleData.materias.filter((_, idx) => !metadataDeletedIndices.includes(idx));
+        
+        // Update hidden input
+        let input = document.getElementById('metadataMateriasInput');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'metadata_materias';
+            input.id = 'metadataMateriasInput';
+            document.getElementById('editForm').appendChild(input);
+        }
+        input.value = JSON.stringify(newMaterias);
+    }
+
+    // Actualizar preview del color (Eliminado)
+    // document.getElementById('editColor').addEventListener('change', function() {
+    //   actualizarPreviewColor(this.value);
+    // });
+
+    // function actualizarPreviewColor(color) {
+    //   document.getElementById('colorPreview').style.backgroundColor = color;
+    //   document.getElementById('colorHex').textContent = color.toUpperCase();
+    // }
+
+    // Cerrar modal
+    function cerrarModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        cerrarModal();
+      }
+    });
+
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        cerrarModal();
+      }
+    });
+
+    // ===== COMPARTIR =====
+    const btnCompartir = document.getElementById('btnCompartir');
+    if (btnCompartir) {
+      btnCompartir.addEventListener('click', function() {
+        const url = window.location.href;
+        const shareText = `Mira mi horario: ${scheduleName}`;
+        
+        if (navigator.share) {
+          navigator.share({
+            title: 'Mi Horario UDG',
+            text: shareText,
+            url: url
+          }).catch(err => console.log('Error al compartir:', err));
+        } else {
+          navigator.clipboard.writeText(url).then(() => {
+            alert('✓ Enlace copiado al portapapeles:\n' + url);
+          }).catch(() => {
+            alert('Enlace: ' + url);
+          });
+        }
+      });
+    }
+
+    // ===== ELIMINAR =====
+    document.getElementById('btnEliminar').addEventListener('click', function() {
+      if (confirm('⚠️ ¿Estás SEGURO de que deseas ELIMINAR este horario?\n\nEsta acción NO se puede deshacer.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/schedules/${scheduleId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', renderizarHorarioVisual);
+  </script>
+</body>
+</html>

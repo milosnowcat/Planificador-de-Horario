@@ -373,6 +373,53 @@ document.getElementById('btnLimpiarHorario').addEventListener('click', () => {
     }
 });
 
+// Guardar horario a la base de datos
+document.addEventListener('DOMContentLoaded', () => {
+    const btnGuardarHorario = document.getElementById('btnGuardarHorario');
+    if (btnGuardarHorario) {
+        btnGuardarHorario.addEventListener('click', guardarHorario);
+    }
+});
+
+function guardarHorario() {
+    const nombreInput = document.getElementById('nombreHorario');
+    const nombre = nombreInput.value.trim() || 'Mi horario';
+    
+    if (materiasAgregadas.length === 0) {
+        alert('No hay materias en el horario. Agrega materias antes de guardar.');
+        return;
+    }
+
+    // Serializar el horario
+    const horarioData = {
+        nombre: nombre,
+        materias: materiasAgregadas,
+        fecha_creacion: new Date().toISOString()
+    };
+
+    // Enviar a la ruta de crear horario
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/schedules/create';
+    
+    const nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'name';
+    nameInput.value = nombre;
+    
+    const dataInput = document.createElement('input');
+    dataInput.type = 'hidden';
+    dataInput.name = 'data';
+    dataInput.value = JSON.stringify(horarioData);
+    
+    form.appendChild(nameInput);
+    form.appendChild(dataInput);
+    document.body.appendChild(form);
+    
+    console.log('Guardando horario:', horarioData);
+    form.submit();
+}
+
 // Inicializar al cargar la página
 window.addEventListener('DOMContentLoaded', () => {
     inicializarCalendario();

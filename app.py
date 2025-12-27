@@ -1,11 +1,35 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_file
 from livereload import Server
 import requests
 from bs4 import BeautifulSoup
 import re
 import time
+import os
+from dotenv import load_dotenv
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from datetime import datetime
+from supabase_client import (
+    supabase_sign_in,
+    supabase_sign_up,
+    supabase_get_schedules,
+    supabase_create_schedule,
+    supabase_create_profile_service,
+    supabase_get_user,
+    supabase_get_profile,
+    supabase_delete_schedule,
+    supabase_update_schedule,
+    supabase_get_schedule_items,
+    supabase_delete_schedule_items,
+)
 
 app = Flask(__name__)
+load_dotenv()
+app.secret_key = os.environ.get('FLASK_SECRET', 'dev-secret')
 
 # Constantes del SIIAU
 POST_URL = "https://siiauescolar.siiau.udg.mx/wal/sspseca.consulta_oferta"
@@ -218,7 +242,433 @@ def fetch_all_pages(session, post_url, payload_base):
 @app.route('/')
 def index():
     """Página principal con el calendario."""
-    return render_template('index.html', centros=CENTROS)
+    user = None
+    if session.get('user'):
+        user = session['user']
+    return render_template('index.html', centros=CENTROS, user=user)
+
+
+@app.route('/login')
+def login_view():
+    return render_template('signin.html')
+
+
+@app.route('/signup')
+def signup_view():
+    return render_template('signup.html')
+
+
+@app.route('/auth/login', methods=['POST'])
+def auth_login():
+    data = request.form
+    email = data.get('email')
+    password = data.get('password')
+    if not email or not password:
+        flash('Email y contraseña requeridos', 'error')
+        return redirect(url_for('login_view'))
+    res = supabase_sign_in(email, password)
+    if not res or 'access_token' not in res:
+        flash('Error al autenticar', 'error')
+        return redirect(url_for('login_view'))
+    session['access_token'] = res['access_token']
+    session['user'] = res['user']
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/auth/register', methods=['POST'])
+def auth_register():
+    data = request.form
+    email = data.get('email')
+    password = data.get('password')
+    if not email or not password:
+        flash('Email y contraseña requeridos', 'error')
+        return redirect(url_for('login_view'))
+    res = supabase_sign_up(email, password)
+    if not res or 'user' not in res:
+        flash('Error al registrar', 'error')
+        return redirect(url_for('login_view'))
+    user = res.get('user')
+    user_id = user.get('id') if user else None
+    # Intentar crear profile en la base de datos usando Service Role (backend)
+    if user_id:
+        try:
+            prof = supabase_create_profile_service(user_id, email)
+            if prof:
+                app.logger.info('Profile creado para %s', user_id)
+            else:
+                app.logger.warning('No se creó profile para %s', user_id)
+        except Exception as e:
+            app.logger.exception('Error al crear profile: %s', e)
+
+    flash('Registro realizado. Revisa tu correo (incluido el correo no deseado) y confirma el enlace para activar tu cuenta.', 'success')
+    return redirect(url_for('login_view'))
+
+
+@app.route('/auth/callback')
+def auth_callback():
+    """Manejar la confirmación de email desde Supabase."""
+    access_token = request.args.get('access_token')
+    refresh_token = request.args.get('refresh_token')
+    token_type = request.args.get('token_type')
+    expires_in = request.args.get('expires_in')
+    error = request.args.get('error')
+    error_description = request.args.get('error_description')
+
+    if error:
+        flash(f'Error en confirmación: {error_description}', 'error')
+        return redirect(url_for('login_view'))
+
+    if not access_token:
+        flash('Token de acceso faltante', 'error')
+        return redirect(url_for('login_view'))
+
+    # Obtener info del usuario
+    user = supabase_get_user(access_token)
+    if not user:
+        flash('Error al obtener información del usuario', 'error')
+        return redirect(url_for('login_view'))
+
+    # Establecer sesión
+    session['access_token'] = access_token
+    session['user'] = user
+    if refresh_token:
+        session['refresh_token'] = refresh_token
+
+    return render_template('confirmation.html')
+
+
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('access_token'):
+        return redirect(url_for('login_view'))
+    access_token = session['access_token']
+    user = session.get('user')
+    user_id = user.get('id')
+    
+    # Obtener profile para verificar estado pro
+    profile = supabase_get_profile(access_token, user_id)
+    is_pro = profile.get('is_pro', False) if profile else False
+    
+    # Obtener horarios
+    schedules = supabase_get_schedules(access_token, user_id)
+    
+    # Limitar horarios si no es pro
+    max_schedules = 999 if is_pro else 1
+    can_create_more = len(schedules) < max_schedules
+    
+    return render_template('dashboard.html', 
+                         schedules=schedules, 
+                         user=user,
+                         is_pro=is_pro,
+                         can_create_more=can_create_more,
+                         schedule_count=len(schedules),
+                         max_schedules=max_schedules)
+
+
+@app.route('/schedules/create', methods=['POST'])
+def create_schedule():
+    if not session.get('access_token'):
+        flash('Debes iniciar sesión para guardar horarios', 'error')
+        return redirect(url_for('login_view'))
+    
+    access_token = session['access_token']
+    user_id = session['user']['id']
+    
+    # Verificar límite de horarios
+    profile = supabase_get_profile(access_token, user_id)
+    
+    # Si no existe perfil, intentar crearlo (fix para error de FK)
+    if not profile:
+        print(f"Profile not found for user {user_id}, attempting to create one...")
+        email = session.get('user', {}).get('email')
+        if email:
+            profile = supabase_create_profile_service(user_id, email)
+            if profile:
+                print("Profile created successfully")
+            else:
+                print("Failed to create profile")
+        else:
+            print("Cannot create profile: email not found in session")
+
+    is_pro = profile.get('is_pro', False) if profile else False
+    schedules = supabase_get_schedules(access_token, user_id)
+    
+    if not is_pro and len(schedules) >= 1:
+        flash('Límite alcanzado. Upgrade a Pro para crear más horarios', 'error')
+        return redirect(url_for('index'))
+    
+    name = request.form.get('name') or 'Mi horario'
+    schedule_data = request.form.get('data', '{}')  # Datos del horario (JSON)
+    
+    print(f'Creating schedule: {name} for user {user_id}')
+    print(f'Schedule data raw length: {len(schedule_data)}')
+    
+    # Parsear los datos JSON
+    try:
+        import json
+        data_parsed = json.loads(schedule_data)
+        if 'materias' in data_parsed:
+            print(f"Data contains {len(data_parsed['materias'])} materias")
+        else:
+            print("Data does NOT contain 'materias' key")
+    except Exception as e:
+        print(f"Error parsing schedule data: {e}")
+        data_parsed = {}
+    
+    s = supabase_create_schedule(access_token, user_id, name, data=data_parsed)
+    if s:
+        print(f'Schedule created successfully: {s}')
+        flash(f'¡Horario "{name}" guardado exitosamente!', 'success')
+        # Si s es una lista, obtener el primer elemento
+        schedule_id = s[0]['id'] if isinstance(s, list) and len(s) > 0 else s.get('id') if isinstance(s, dict) else None
+        if schedule_id:
+            return redirect(url_for('view_schedule', schedule_id=schedule_id))
+        return redirect(url_for('dashboard'))
+    else:
+        print('Failed to create schedule')
+        flash('Error al guardar horario. Por favor intenta de nuevo.', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/schedules/<schedule_id>/delete', methods=['POST'])
+def delete_schedule(schedule_id):
+    if not session.get('access_token'):
+        return jsonify({'error': 'not authenticated'}), 401
+    access_token = session['access_token']
+    success = supabase_delete_schedule(access_token, schedule_id)
+    if success:
+        flash('Horario eliminado', 'success')
+    else:
+        flash('Error al eliminar horario', 'error')
+    return redirect(url_for('dashboard'))
+
+@app.route('/schedules/<schedule_id>/edit', methods=['POST'])
+def edit_schedule(schedule_id):
+    if not session.get('access_token'):
+        return jsonify({'error': 'not authenticated'}), 401
+    access_token = session['access_token']
+    name = request.form.get('name')
+    color = request.form.get('color')
+    notes = request.form.get('notes')
+    
+    # Procesar items eliminados (DB)
+    deleted_items = request.form.get('deleted_items')
+    if deleted_items:
+        try:
+            # Split and strip, keep as strings to support both UUIDs and Integers
+            item_ids = [id.strip() for id in deleted_items.split(',') if id.strip()]
+            if item_ids:
+                supabase_delete_schedule_items(access_token, item_ids)
+        except Exception as e:
+            print(f"Error deleting items: {e}")
+
+    # Procesar actualización de metadatos y sincronización de nombre
+    metadata_materias = request.form.get('metadata_materias')
+    new_metadata = None
+    
+    try:
+        # Siempre obtener metadatos actuales para sincronizar nombre y preservar datos
+        schedules = supabase_get_schedules(access_token, session['user']['id'])
+        current_schedule = next((s for s in schedules if str(s.get('id')) == str(schedule_id)), None)
+        
+        if current_schedule:
+            new_metadata = current_schedule.get('metadata', {}) or {}
+            
+            # Si hay actualización de materias legacy
+            if metadata_materias:
+                import json
+                new_metadata['materias'] = json.loads(metadata_materias)
+                print(f"Updating metadata with {len(new_metadata['materias'])} materias")
+            
+            # Sincronizar nombre en metadatos si cambió
+            if name:
+                new_metadata['nombre'] = name
+            
+            # Guardar color y notas en metadatos (fallback por si no existen columnas)
+            if color:
+                new_metadata['color'] = color
+            if notes:
+                new_metadata['notes'] = notes
+                
+    except Exception as e:
+        print(f"Error preparing metadata update: {e}")
+    
+    success = supabase_update_schedule(access_token, schedule_id, name=name, color=color, notes=notes, metadata=new_metadata)
+    if success:
+        if deleted_items:
+            flash('Horario actualizado y materias eliminadas correctamente', 'success')
+        else:
+            flash('Horario actualizado correctamente', 'success')
+        return redirect(url_for('view_schedule', schedule_id=schedule_id))
+    else:
+        flash('Error al actualizar horario', 'error')
+        return redirect(url_for('dashboard'))
+
+@app.route('/pricing')
+def pricing():
+    """Página de planes de precios."""
+    user = session.get('user') if session.get('access_token') else None
+    is_pro = False
+    if user:
+        profile = supabase_get_profile(session['access_token'], user['id'])
+        is_pro = profile.get('is_pro', False) if profile else False
+    return render_template('pricing.html', user=user, is_pro=is_pro)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Sesión cerrada', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/schedules/<schedule_id>')
+def view_schedule(schedule_id):
+    """Ver detalles de un horario."""
+    if not session.get('access_token'):
+        return redirect(url_for('login_view'))
+    
+    access_token = session['access_token']
+    user = session.get('user')
+    user_id = user.get('id')
+    
+    # Obtener todos los horarios del usuario
+    schedules = supabase_get_schedules(access_token, user_id)
+    schedule = next((s for s in schedules if str(s.get('id')) == str(schedule_id)), None)
+    
+    if not schedule:
+        flash('Horario no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get schedule items from the database
+    schedule_items = supabase_get_schedule_items(access_token, schedule_id)
+    
+    # SELF-HEALING: If no items in DB but metadata has materias, migrate them now
+    if not schedule_items and schedule.get('metadata') and 'materias' in schedule.get('metadata', {}):
+        print(f"Migrating legacy materias for schedule {schedule_id}...")
+        materias = schedule['metadata']['materias']
+        if materias:
+            # Import here to avoid circular imports if any
+            from supabase_client import supabase_create_schedule_items
+            count, errors = supabase_create_schedule_items(access_token, schedule_id, materias)
+            
+            if errors:
+                print(f"Migration errors: {errors}")
+                flash(f"Error migrando materias: {errors[0]}", "error")
+            else:
+                # Refresh items
+                schedule_items = supabase_get_schedule_items(access_token, schedule_id)
+                print(f"Migration complete. Found {len(schedule_items)} items.")
+                flash(f"Se migraron {count} materias al nuevo formato.", "success")
+
+    profile = supabase_get_profile(access_token, user_id)
+    is_pro = profile.get('is_pro', False) if profile else False
+    
+    return render_template('schedule_detail.html', 
+                         schedule=schedule,
+                         schedule_items=schedule_items, 
+                         user=user,
+                         is_pro=is_pro)
+
+
+@app.route('/schedules/<schedule_id>/download-pdf')
+def download_schedule_pdf(schedule_id):
+    """Descargar horario como PDF."""
+    if not session.get('access_token'):
+        return redirect(url_for('login_view'))
+    
+    access_token = session['access_token']
+    user = session.get('user')
+    user_id = user.get('id')
+    
+    # Verificar si es Pro
+    profile = supabase_get_profile(access_token, user_id)
+    is_pro = profile.get('is_pro', False) if profile else False
+    
+    if not is_pro:
+        flash('Esta función está disponible solo en Plan Pro', 'error')
+        return redirect(url_for('view_schedule', schedule_id=schedule_id))
+    
+    # Obtener horario
+    schedules = supabase_get_schedules(access_token, user_id)
+    schedule = next((s for s in schedules if str(s.get('id')) == str(schedule_id)), None)
+    
+    if not schedule:
+        flash('Horario no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        # Crear PDF
+        pdf_buffer = BytesIO()
+        doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Título
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#5a67d8'),
+            spaceAfter=30,
+            alignment=1
+        )
+        story.append(Paragraph(schedule.get('name', 'Mi Horario'), title_style))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Información
+        info_style = ParagraphStyle(
+            'Info',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.HexColor('#6b7280')
+        )
+        story.append(Paragraph(f"<b>ID:</b> {schedule.get('id')}", info_style))
+        
+        created_at = schedule.get('created_at', 'N/A')
+        if created_at:
+            story.append(Paragraph(f"<b>Creado:</b> {created_at}", info_style))
+        
+        if schedule.get('notes'):
+            story.append(Spacer(1, 0.15*inch))
+            story.append(Paragraph(f"<b>Notas:</b>", info_style))
+            story.append(Paragraph(schedule.get('notes'), info_style))
+        
+        story.append(Spacer(1, 0.3*inch))
+        story.append(Paragraph("Información General", styles['Heading2']))
+        story.append(Spacer(1, 0.1*inch))
+        
+        # Tabla con información
+        data = [['Propiedad', 'Valor']]
+        data.append(['Nombre', schedule.get('name', 'N/A')])
+        data.append(['ID', schedule.get('id', 'N/A')[:8] + '...'])
+        data.append(['Fecha de Creación', str(schedule.get('created_at', 'N/A'))[:10]])
+        data.append(['Color', schedule.get('color', '#000000')])
+        
+        table = Table(data, colWidths=[2*inch, 4*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#5a67d8')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        story.append(table)
+        
+        # Generar PDF
+        doc.build(story)
+        pdf_buffer.seek(0)
+        
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f"{schedule.get('name', 'horario').replace(' ', '_')}.pdf"
+        )
+    except Exception as e:
+        print(f'Error generating PDF: {e}')
+        flash('Error al generar PDF', 'error')
+        return redirect(url_for('view_schedule', schedule_id=schedule_id))
 
 @app.route('/favicon.ico')
 def favicon():
@@ -274,10 +724,4 @@ def get_centros():
     return jsonify(CENTROS)
 
 if __name__ == '__main__':
-    server = Server(app.wsgi_app)
-
-    server.watch('templates/*.html')
-    server.watch('static/css/*.css')
-    server.watch('static/js/*.js')
-
-    server.serve(port=5000)
+    app.run(debug=True, port=5001)

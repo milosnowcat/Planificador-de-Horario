@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - Planificador UDG</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages" style="padding: 20px 20px 0 20px;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <header>
+      <div>
+        <h1>Planificador de Horarios UDG</h1>
+        <div class="subtitle">
+          Bienvenido, {{ user.email }}
+          {% if is_pro %}<span style="background: var(--primary-600); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px;">PRO</span>{% endif %}
+        </div>
+      </div>
+      <div>
+        <a href="/pricing" class="btn" style="margin-right: 8px;">Planes</a>
+        <a href="/logout" class="btn">Cerrar sesión</a>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <aside style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <h3 style="margin-bottom: 16px; color: var(--primary-600);">Acciones rápidas</h3>
+        <div style="display: grid; gap: 12px;">
+          {% if can_create_more %}
+            <a href="/" class="btn btn-primary" style="text-align: center; text-decoration: none;">Crear nuevo horario</a>
+          {% else %}
+            <button class="btn" style="background: #e6e9ef; cursor: not-allowed;" disabled>
+              Límite: {{ schedule_count }}/{{ max_schedules }}
+            </button>
+            <a href="/pricing" class="btn btn-outline">Upgrade a Pro</a>
+          {% endif %}
+          <a href="/" class="btn btn-outline">Volver al inicio</a>
+        </div>
+        
+        <div id="createForm" style="display: none; margin-top: 20px; padding: 16px; background: #f8fafc; border-radius: 8px;">
+          <h4>Crear horario</h4>
+          <form action="/schedules/create" method="post" style="display: grid; gap: 12px;">
+            <input class="form-control" type="text" name="name" placeholder="Nombre del horario" required>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button class="btn btn-primary" type="submit">Crear</button>
+              <button class="btn btn-outline" type="button" onclick="showCreateForm()">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid var(--primary-600);">
+          <h4 style="font-size: 14px; margin-bottom: 8px;">Estadísticas</h4>
+          <p style="font-size: 13px; color: var(--muted); margin: 4px 0;">
+            Horarios: <strong>{{ schedule_count }}/{{ max_schedules }}</strong>
+          </p>
+          <p style="font-size: 13px; color: var(--muted); margin: 4px 0;">
+            Plan: <strong>{% if is_pro %}PRO{% else %}Gratis{% endif %}</strong>
+          </p>
+        </div>
+      </aside>
+
+      <main>
+        <section style="margin-bottom: 32px;">
+          <h2 style="margin-bottom: 16px; color: #0f172a;">Tus horarios</h2>
+          <div id="schedulesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+            {% if schedules %}
+              {% for s in schedules %}
+                <div class="schedule-card" style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 2px solid {{ s.color or '#e6e9ef' }};">
+                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <h3 style="margin: 0; color: var(--primary-600);">{{ s.name }}</h3>
+                    <button onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 20px;">⋯</button>
+                  </div>
+                  
+                  <div class="schedule-menu" style="display: none; position: absolute; background: var(--surface); border: 1px solid #e6e9ef; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; min-width: 160px;">
+                    <button onclick="showEditForm('{{ s.id }}', '{{ s.name }}', '{{ s.color or '#e6e9ef' }}', '{{ s.notes or '' }}')" style="display: block; width: 100%; padding: 8px 12px; text-align: left; border: none; background: none; cursor: pointer; font-size: 14px;">Editar</button>
+                    <form action="/schedules/{{ s.id }}/delete" method="post" style="margin: 0;">
+                      <button type="submit" onclick="return confirm('¿Eliminar este horario?')" style="display: block; width: 100%; padding: 8px 12px; text-align: left; border: none; background: none; cursor: pointer; color: var(--danger); font-size: 14px;">Eliminar</button>
+                    </form>
+                  </div>
+                  
+                  <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <a href="/schedules/{{ s.id }}" class="btn btn-outline" style="font-size: 12px; padding: 8px;">Ver detalles</a>
+                    <button onclick="showExportOptions('{{ s.id }}')" class="btn btn-outline" style="font-size: 12px; padding: 8px;">Exportar</button>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div style="text-align: center; padding: 40px; color: var(--muted); grid-column: 1/-1;">
+                <p style="font-size: 16px; margin-bottom: 8px;">No tienes horarios aún.</p>
+                <p style="font-size: 14px;">Haz clic en "Crear nuevo horario" para empezar.</p>
+              </div>
+            {% endif %}
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modal de edición -->
+    <div id="editModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
+      <div style="background: var(--surface); padding: 28px; border-radius: 12px; max-width: 400px; width: 90%;">
+        <h3 style="margin-bottom: 16px;">Editar horario</h3>
+        <form id="editForm" method="post" style="display: grid; gap: 12px;">
+          <div>
+            <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px;">Nombre</label>
+            <input class="form-control" type="text" name="name" id="editName" required>
+          </div>
+          <div>
+            <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px;">Color</label>
+            <input class="form-control" type="color" name="color" id="editColor">
+          </div>
+          <div>
+            <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px;">Notas</label>
+            <textarea class="form-control" name="notes" id="editNotes" style="min-height: 80px; resize: vertical;"></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <button class="btn btn-outline" type="button" onclick="closeEditModal()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showCreateForm() {
+      const form = document.getElementById('createForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleMenu(btn) {
+      const menu = btn.closest('.schedule-card').querySelector('.schedule-menu');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function showEditForm(scheduleId, name, color, notes) {
+      document.getElementById('editName').value = name;
+      document.getElementById('editColor').value = color;
+      document.getElementById('editNotes').value = notes;
+      document.getElementById('editForm').action = `/schedules/${scheduleId}/edit`;
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function showExportOptions(scheduleId) {
+      alert('Exportación a PDF disponible en la versión Pro');
+    }
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('editModal').addEventListener('click', (e) => {
+      if (e.target.id === 'editModal') closeEditModal();
+    });
+  </script>
+</body>
+</html>

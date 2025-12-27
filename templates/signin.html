@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Entrar · Planificador</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container" style="max-width:980px;margin:60px auto;padding:0;">
+    <div style="display:grid;grid-template-columns:1fr 420px;gap:0;align-items:stretch;">
+      <div style="padding:40px;background:linear-gradient(180deg,#f7f9ff,#eef4ff);display:flex;flex-direction:column;justify-content:center;gap:18px;">
+        <h1 style="font-size:28px;color:var(--primary-600);">Planificador de Horario UDG</h1>
+        <p style="color:var(--muted);max-width:520px;">Guarda y gestiona tus horarios, sincroniza entre dispositivos y exporta a PDF. Mejora a Pro para quitar anuncios.</p>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div class="pro-badge">Beta</div>
+          <div style="color:var(--muted);font-size:14px;">Aplicación estudiante — hecha para UDG</div>
+        </div>
+      </div>
+
+      <div style="padding:28px;background:var(--surface);border-left:1px solid #f1f5f9;">
+        <h2 style="margin-bottom:6px;">Iniciar sesión</h2>
+        <p style="color:var(--muted);margin-bottom:14px;">Ingresa con tu correo para acceder a tus horarios</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form action="/auth/login" method="post" style="display:grid;gap:10px;">
+          <label style="font-size:13px;color:var(--muted)">Correo</label>
+          <input class="form-control" type="email" name="email" placeholder="tu@correo.edu.mx" required>
+
+          <label style="font-size:13px;color:var(--muted)">Contraseña</label>
+          <input class="form-control" type="password" name="password" placeholder="Contraseña" required>
+
+          <button class="btn btn-primary" type="submit">Entrar</button>
+        </form>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+          <small style="color:var(--muted);">¿No tienes cuenta?</small>
+          <a class="btn btn-outline" href="/signup">Crear cuenta</a>
+        </div>
+
+        <div style="margin-top:18px;color:var(--muted);font-size:13px;">También puedes registrarte con tu correo institucional en la sección de registro.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

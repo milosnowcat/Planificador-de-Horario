@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planes - Planificador UDG</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Planes de Suscripción</h1>
+        <div class="subtitle">Elige el plan que mejor se adapte a ti</div>
+      </div>
+      <div>
+        {% if user %}
+          <a href="/dashboard" class="btn">Dashboard</a>
+          <a href="/logout" class="btn">Cerrar sesión</a>
+        {% else %}
+          <a href="/login" class="btn">Iniciar sesión</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <div style="padding: 40px; max-width: 1200px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px;">
+        
+        <!-- Plan Gratis -->
+        <div style="background: var(--surface); padding: 28px; border-radius: 12px; border: 2px solid #e6e9ef; display: flex; flex-direction: column;">
+          <h2 style="color: var(--primary-600); margin-bottom: 8px;">Plan Gratis</h2>
+          <div style="font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">$0<span style="font-size: 14px; color: var(--muted);">/mes</span></div>
+          <p style="color: var(--muted); margin-bottom: 24px;">Perfecto para comenzar</p>
+          
+          <ul style="flex: 1; margin-bottom: 24px; list-style: none;">
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>1 horario</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Búsqueda de materias</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Sincronización básica</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px; opacity: 0.5;">
+              <span>✗</span>
+              <span>Exportar a PDF</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px; opacity: 0.5;">
+              <span>✗</span>
+              <span>Compartir horarios</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px; opacity: 0.5;">
+              <span>✗</span>
+              <span>Soporte prioritario</span>
+            </li>
+          </ul>
+          
+          {% if not is_pro %}
+            <button class="btn btn-outline" disabled>Plan Actual</button>
+          {% else %}
+            <button class="btn btn-outline" disabled>Estás en Plan Pro</button>
+          {% endif %}
+        </div>
+        
+        <!-- Plan Pro -->
+        <div style="background: linear-gradient(180deg, #f0f4ff, #f7f0ff); padding: 28px; border-radius: 12px; border: 2px solid var(--primary-600); position: relative; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);">
+          <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary-600); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">RECOMENDADO</div>
+          
+          <h2 style="color: var(--primary-600); margin-bottom: 8px; margin-top: 8px;">Plan Pro</h2>
+          <div style="font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">$4.99<span style="font-size: 14px; color: var(--muted);">/mes</span></div>
+          <p style="color: var(--muted); margin-bottom: 24px;">Todo lo que necesitas</p>
+          
+          <ul style="flex: 1; margin-bottom: 24px; list-style: none;">
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Horarios ilimitados</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Búsqueda de materias</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Sincronización completa</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Exportar a PDF</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Compartir horarios</span>
+            </li>
+            <li style="padding: 8px 0; display: flex; gap: 8px;">
+              <span style="color: var(--success);">✓</span>
+              <span>Soporte prioritario</span>
+            </li>
+          </ul>
+          
+          {% if is_pro %}
+            <button class="btn btn-primary" disabled>Plan Actual</button>
+          {% else %}
+            <button class="btn btn-primary" onclick="alert('Sistema de pago en desarrollo')">Actualizar a Pro</button>
+          {% endif %}
+        </div>
+        
+      </div>
+
+      <!-- Comparativa -->
+      <div style="background: var(--surface); padding: 24px; border-radius: 12px; margin-top: 40px;">
+        <h3 style="margin-bottom: 20px;">Comparativa de características</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e6e9ef;">
+              <th style="text-align: left; padding: 12px; color: var(--primary-600);">Característica</th>
+              <th style="text-align: center; padding: 12px; color: var(--primary-600);">Gratis</th>
+              <th style="text-align: center; padding: 12px; color: var(--primary-600);">Pro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #e6e9ef;">
+              <td style="padding: 12px;">Horarios</td>
+              <td style="text-align: center; padding: 12px;">1</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">Ilimitados</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e6e9ef;">
+              <td style="padding: 12px;">Búsqueda de materias SIIAU</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">✓</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">✓</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e6e9ef;">
+              <td style="padding: 12px;">Personalización (colores, notas)</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">✓</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">✓</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e6e9ef;">
+              <td style="padding: 12px;">Exportar a PDF</td>
+              <td style="text-align: center; padding: 12px; opacity: 0.5;">✗</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">✓</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e6e9ef;">
+              <td style="padding: 12px;">Compartir horarios</td>
+              <td style="text-align: center; padding: 12px; opacity: 0.5;">✗</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">✓</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px;">Soporte prioritario</td>
+              <td style="text-align: center; padding: 12px; opacity: 0.5;">✗</td>
+              <td style="text-align: center; padding: 12px; color: var(--success);">✓</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FAQ -->
+      <div style="margin-top: 40px; max-width: 700px;">
+        <h3 style="margin-bottom: 20px;">Preguntas frecuentes</h3>
+        <div style="display: grid; gap: 12px;">
+          <div style="background: var(--surface); padding: 16px; border-radius: 8px; border-left: 4px solid var(--primary-600);">
+            <strong>¿Puedo cambiar de plan en cualquier momento?</strong>
+            <p style="color: var(--muted); margin-top: 6px;">Sí, puedes actualizar o cambiar de plan en cualquier momento. Los cambios se aplican inmediatamente.</p>
+          </div>
+          <div style="background: var(--surface); padding: 16px; border-radius: 8px; border-left: 4px solid var(--primary-600);">
+            <strong>¿Hay período de prueba?</strong>
+            <p style="color: var(--muted); margin-top: 6px;">Actualmente no, pero puedes usar el plan Gratis sin límite de tiempo.</p>
+          </div>
+          <div style="background: var(--surface); padding: 16px; border-radius: 8px; border-left: 4px solid var(--primary-600);">
+            <strong>¿Se perderán mis datos si cambio de plan?</strong>
+            <p style="color: var(--muted); margin-top: 6px;">No, todos tus datos se mantienen. Si cambias a Gratis, solo podrás ver 1 horario.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="/" class="btn btn-outline">Volver al inicio</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

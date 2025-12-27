@@ -9,21 +9,46 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
-            <h1>Planificador de Horario UDG</h1>
-            <p class="subtitle">Planea tu horario del proximo semestre de forma visual</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages" style="padding: 20px 20px 0 20px;">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <header style="display:flex;justify-content:space-between;align-items:center; padding-bottom: 20px; border-bottom: 1px solid #e6e9ef; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" style="width: 48px; height: 48px; border-radius: 12px;">
+                <div>
+                    <h1 style="font-size: 24px; margin: 0; color: #1e293b;">Planificador UDG</h1>
+                    <p class="subtitle" style="margin: 0; font-size: 14px; color: #64748b;">Diseña tu semestre ideal</p>
+                </div>
+            </div>
+            <div>
+                {% if user %}
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 14px; color: #64748b;">Hola, {{ user.email }}</span>
+                    <a href="/dashboard" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px;">Mi Dashboard</a>
+                    <a href="/logout" class="btn btn-outline" style="padding: 8px 16px; font-size: 14px;">Salir</a>
+                </div>
+                {% else %}
+                <a href="/signup" class="btn btn-secondary" style="margin-right: 8px; font-size: 14px;">Crear Cuenta</a>
+                <a href="/login" class="btn btn-primary" style="font-size: 14px;">Iniciar Sesión</a>
+                {% endif %}
+            </div>
         </header>
 
         <div class="main-content">
             <div class="left-panel">
                 <!-- Panel de búsqueda -->
-                <div class="search-panel">
-                    <h2>Buscar Materias</h2>
+                <div class="search-panel" style="border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h2 style="font-size: 18px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">🔍 Buscar Materias</h2>
                     
                     <div class="form-group">
-                        <label for="ciclo">Ciclo:</label>
-                        <select id="ciclo" class="form-control">
+                        <label for="ciclo" style="font-size: 13px; color: #64748b; font-weight: 600;">Ciclo Escolar</label>
+                        <select id="ciclo" class="form-control" style="background-color: #f8fafc;">
                             <option value="202610">2026-A</option>
                             <option value="202520">2025-B</option>
                             <option value="202510">2025-A</option>                            
@@ -31,8 +56,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="centro">Centro Universitario:</label>
-                        <select id="centro" class="form-control">
+                        <label for="centro" style="font-size: 13px; color: #64748b; font-weight: 600;">Centro Universitario</label>
+                        <select id="centro" class="form-control" style="background-color: #f8fafc;">
                             <option value="">Selecciona un centro...</option>
                             {% for codigo, nombre in centros.items() %}
                             <option value="{{ codigo }}">{{ nombre }}</option>
@@ -41,58 +66,85 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="carrera">Código de Carrera:</label>
-                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO">
-                        <small>Deja vacío para ver todas las carreras del centro</small>
+                        <label for="carrera" style="font-size: 13px; color: #64748b; font-weight: 600;">Carrera (Opcional)</label>
+                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO, IINF..." style="background-color: #f8fafc;">
                     </div>
 
-                    <button id="btnBuscar" class="btn btn-primary">🔍 Buscar Materias</button>
+                    <button id="btnBuscar" class="btn btn-primary" style="width: 100%; margin-top: 8px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <span>Buscar Materias</span>
+                    </button>
 
-                    <div id="loading" class="loading" style="display: none;">
-                        <div class="spinner"></div>
-                        <p>Buscando materias...</p>
+                    <div id="loading" class="loading" style="display: none; margin-top: 16px;">
+                        <div class="spinner" style="width: 24px; height: 24px; border-width: 3px;"></div>
+                        <p style="font-size: 13px; color: #64748b;">Consultando SIIAU...</p>
                     </div>
                 </div>
 
                 <!-- Lista de materias encontradas -->
-                <div id="materiasContainer" class="materias-container" style="display: none;"> 
-                    <div class="materias-header">
-                        <h3>Materias Disponibles (<span id="totalMaterias">0</span>)</h3>
-                        <div class="search-box">
-                            <input type="text" id="filtroMaterias" class="form-control" placeholder="Filtrar por nombre...">
+                <div id="materiasContainer" class="materias-container" style="display: none; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"> 
+                    <div class="materias-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px;">
+                        <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 8px;">Resultados (<span id="totalMaterias">0</span>)</h3>
+                        <div class="search-box" style="margin: 0;">
+                            <input type="text" id="filtroMaterias" class="form-control" placeholder="Filtrar por nombre..." style="font-size: 13px;">
                         </div>
                     </div>
 
-                    <div id="listaMaterias" class="materias-list">
-                        </div>
-
+                    <div id="listaMaterias" class="materias-list" style="height: calc(100vh - 550px);">
+                    </div>
                 </div>
             </div>
             <!-- Calendario semanal -->
-            <div class="calendar-panel">
-                <div class="calendar-header">
-                    <h2>Mi Horario Semanal</h2>
-                    <button id="btnLimpiarHorario" class="btn btn-secondary">🗑️ Limpiar Horario</button>
+            <div class="calendar-panel" style="border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                <div class="calendar-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
+                    <h2 style="font-size: 20px; color: #1e293b; margin: 0;">📅 Mi Horario Semanal</h2>
+                    <button id="btnLimpiarHorario" class="btn btn-outline" style="font-size: 13px; padding: 6px 12px; color: #ef4444; border-color: #fee2e2; background: #fef2f2;">
+                        Limpiar Todo
+                    </button>
                 </div>
 
-                <div class="calendar-grid" id="calendario">
+                <div class="calendar-grid" id="calendario" style="border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">
                     <!-- Header con días -->
-                    <div class="calendar-cell header">Hora</div>
-                    <div class="calendar-cell header">Lunes</div>
-                    <div class="calendar-cell header">Martes</div>
-                    <div class="calendar-cell header">Miércoles</div>
-                    <div class="calendar-cell header">Jueves</div>
-                    <div class="calendar-cell header">Viernes</div>
-                    <div class="calendar-cell header">Sábado</div>
+                    <div class="calendar-cell header" style="background: var(--primary-600);">Hora</div>
+                    <div class="calendar-cell header" style="background: var(--primary-600);">Lunes</div>
+                    <div class="calendar-cell header" style="background: var(--primary-600);">Martes</div>
+                    <div class="calendar-cell header" style="background: var(--primary-600);">Miércoles</div>
+                    <div class="calendar-cell header" style="background: var(--primary-600);">Jueves</div>
+                    <div class="calendar-cell header" style="background: var(--primary-600);">Viernes</div>
+                    <div class="calendar-cell header" style="background: var(--primary-600);">Sábado</div>
                 </div>
 
                 <!-- Leyenda de colores -->
-                <div class="legend">
-                    <h4>Materias agregadas:</h4>
-                    <div id="legendItems" class="legend-items">
-                        <p class="empty-message">No hay materias agregadas aún</p>
+                <div class="legend" style="margin-top: 20px; padding: 16px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h4 style="font-size: 14px; color: #64748b; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Materias Seleccionadas</h4>
+                    <div id="legendItems" class="legend-items" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <p class="empty-message" style="font-size: 13px; color: #94a3b8; font-style: italic;">Selecciona materias del panel izquierdo para agregarlas aquí.</p>
                     </div>
                 </div>
+
+                {% if user %}
+                <!-- Botón para guardar horario si el usuario está logueado -->
+                <div style="margin-top: 20px; padding: 20px; background: linear-gradient(to right, #f0f9ff, #e0f2fe); border-radius: 12px; display: flex; gap: 12px; align-items: center; border: 1px solid #bae6fd;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #0369a1; margin-bottom: 4px;">NOMBRE DEL HORARIO</label>
+                        <input type="text" id="nombreHorario" class="form-control" placeholder="Ej: Horario 2025-A Final" style="border-color: #7dd3fc;">
+                    </div>
+                    <button id="btnGuardarHorario" class="btn btn-primary" style="height: 42px; margin-top: 18px; padding: 0 24px; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);">
+                        💾 Guardar en mi cuenta
+                    </button>
+                </div>
+                {% else %}
+                <!-- Mensaje para usuarios no autenticados -->
+                <div style="margin-top: 24px; padding: 20px; background: #fffbeb; border-radius: 12px; text-align: center; border: 1px solid #fcd34d;">
+                    <p style="color: #92400e; margin: 0; font-size: 15px; font-weight: 500;">
+                        ¿Te gusta cómo quedó tu horario?
+                    </p>
+                    <div style="margin-top: 12px;">
+                        <a href="/login" class="btn btn-primary" style="font-size: 14px; background: #d97706;">Iniciar sesión para guardar</a>
+                    </div>
+                    <p style="margin-top: 8px; font-size: 12px; color: #b45309;">
+                        O <a href="/signup" style="color: #b45309; text-decoration: underline; font-weight: 600;">crea una cuenta gratis</a></p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

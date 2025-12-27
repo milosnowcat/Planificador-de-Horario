@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Confirmación · Planificador</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container" style="max-width:980px;margin:60px auto;padding:0;">
+    <div style="display:grid;grid-template-columns:1fr 420px;gap:0;align-items:stretch;">
+      <div style="padding:40px;background:linear-gradient(180deg,#f7f9ff,#eef4ff);display:flex;flex-direction:column;justify-content:center;gap:18px;">
+        <h1 style="font-size:28px;color:var(--primary-600);">¡Email confirmado!</h1>
+        <p style="color:var(--muted);max-width:520px;">Tu cuenta ha sido verificada exitosamente. Ahora puedes acceder a todos los features de la aplicación.</p>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div class="pro-badge">Beta</div>
+          <div style="color:var(--muted);font-size:14px;">Aplicación estudiante — hecha para UDG</div>
+        </div>
+      </div>
+
+      <div style="padding:28px;background:var(--surface);border-left:1px solid #f1f5f9;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 60px; height: 60px; background: var(--success); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17L4 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 style="margin-bottom:6px;">Confirmación exitosa</h2>
+        </div>
+        <p style="color:var(--muted);margin-bottom:14px;text-align: center;">Tu email ha sido confirmado. Bienvenido a la aplicación.</p>
+
+        <div style="display:grid;gap:10px;">
+          <a class="btn btn-primary" href="/dashboard">Ir al Dashboard</a>
+        </div>
+
+        <div style="margin-top:18px;color:var(--muted);font-size:13px;text-align: center;">Si tienes problemas, contacta al soporte.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

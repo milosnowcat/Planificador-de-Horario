@@ -3,4 +3,5 @@ pandas
 beautifulsoup4
 flask
 livereload
-
+python-dotenv
+reportlab

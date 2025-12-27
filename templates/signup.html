@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Crear cuenta · Planificador</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container" style="max-width:980px;margin:60px auto;padding:0;">
+    <div style="display:grid;grid-template-columns:420px 1fr;gap:0;align-items:stretch;">
+      <div style="padding:28px;background:var(--surface);border-right:1px solid #f1f5f9;">
+        <h2 style="margin-bottom:6px;">Crear cuenta</h2>
+        <p style="color:var(--muted);margin-bottom:14px;">Regístrate con tu correo institucional para guardar horarios.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form action="/auth/register" method="post" style="display:grid;gap:10px;">
+          <label style="font-size:13px;color:var(--muted)">Correo</label>
+          <input class="form-control" type="email" name="email" placeholder="tu@correo.edu.mx" required>
+
+          <label style="font-size:13px;color:var(--muted)">Contraseña</label>
+          <input class="form-control" type="password" name="password" placeholder="Crear contraseña" required>
+
+          <button class="btn btn-primary" type="submit">Crear cuenta</button>
+        </form>
+
+        <div style="margin-top:14px;color:var(--muted);font-size:13px;">Al registrarte aceptas los términos y que tu cuenta pueda sincronizar datos entre dispositivos.</div>
+
+        <div style="margin-top:12px;padding:12px;background:#f0f5ff;border-radius:8px;border:1px solid #dbeafe;color:#1e1b4b;font-size:13px;">
+          Te enviaremos un correo para confirmar tu cuenta. Revisa también la carpeta de correo no deseado (spam) y sigue el enlace para activar tu acceso.
+        </div>
+      </div>
+
+      <div style="padding:40px;background:linear-gradient(180deg,#f7f9ff,#eef4ff);display:flex;flex-direction:column;justify-content:center;gap:18px;">
+        <h1 style="font-size:28px;color:var(--primary-600);">Bienvenido</h1>
+        <p style="color:var(--muted);max-width:520px;">Crea tu cuenta para empezar a guardar múltiples horarios, exportar a PDF y sincronizar entre dispositivos.</p>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div class="pro-badge">Pro features</div>
+          <div style="color:var(--muted);font-size:14px;">Exportar PDF · Sincronización · Sin anuncios</div>
+        </div>
+        <div style="margin-top:6px;"><a class="btn btn-outline" href="/login">Volver a Iniciar sesión</a></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
