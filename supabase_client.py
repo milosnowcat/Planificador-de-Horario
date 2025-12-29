@@ -46,12 +46,16 @@ def supabase_sign_up(email, password):
         return None
 
 
-def supabase_reset_password_email(email):
+def supabase_reset_password_email(email, redirect_url=None):
     """Send password reset email."""
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
         return None
     url = f"{SUPABASE_URL}/auth/v1/recover"
     payload = {"email": email}
+    if redirect_url:
+        payload["gotrue_meta_security"] = {}
+        payload["redirect_to"] = redirect_url
+        
     try:
         r = requests.post(url, json=payload, headers=headers_base, timeout=10)
         # Supabase returns 200 OK even if email doesn't exist (security)

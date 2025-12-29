@@ -340,7 +340,10 @@ def forgot_password():
             flash('Por favor ingresa tu correo', 'error')
             return redirect(url_for('forgot_password'))
         
-        success = supabase_reset_password_email(email)
+        # Generar URL de callback absoluta
+        callback_url = url_for('auth_callback', _external=True)
+        
+        success = supabase_reset_password_email(email, redirect_url=callback_url)
         if success:
             flash('Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.', 'success')
         else:
