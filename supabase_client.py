@@ -72,7 +72,9 @@ def supabase_reset_password_email(email, redirect_url=None):
 def supabase_update_user_password(access_token, new_password):
     """Update user password."""
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
-        return None
+        return None, "Configuración de Supabase faltante"
+    if not access_token:
+        return None, "Token de acceso faltante (sesión expirada)"
     url = f"{SUPABASE_URL}/auth/v1/user"
     headers = {
         'apikey': SUPABASE_ANON_KEY,
@@ -83,12 +85,20 @@ def supabase_update_user_password(access_token, new_password):
     try:
         r = requests.put(url, json=payload, headers=headers, timeout=10)
         if r.ok:
-            return r.json()
-        print('supabase_update_user_password error:', r.status_code, r.text)
-        return None
+            return r.json(), None
+        
+        error_data = {}
+        try:
+            error_data = r.json()
+        except:
+            pass
+        
+        error_msg = error_data.get('msg') or error_data.get('message') or r.text
+        print('supabase_update_user_password error:', r.status_code, error_msg)
+        return None, error_msg
     except Exception as e:
         print('supabase_update_user_password exception:', str(e))
-        return None
+        return None, str(e)
 
 
 def supabase_get_schedules(access_token, user_id):

@@ -374,14 +374,14 @@ def reset_password():
             return redirect(url_for('reset_password'))
             
         # Actualizar contraseña en Supabase
-        user = supabase_update_user_password(session['access_token'], password)
+        user, error_msg = supabase_update_user_password(session['access_token'], password)
         
         if user:
-            flash('Contraseña actualizada correctamente. Por favor inicia sesión.', 'success')
+            flash('Has restablecido la contraseña con éxito.', 'success')
             session.clear() # Cerrar sesión para obligar a login con nueva pass
             return redirect(url_for('login_view'))
         else:
-            flash('Error al actualizar la contraseña', 'error')
+            flash(f'Error al actualizar la contraseña: {error_msg}', 'error')
             
     return render_template('reset_password.html')
 
