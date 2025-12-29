@@ -385,28 +385,49 @@ def reset_password():
             
     return render_template('reset_password.html')
 
-@app.route('/auth/callback')
+@app.route('/auth/callback', methods=['GET', 'POST'])
 def auth_callback():
     """Manejar la confirmación de email desde Supabase."""
-    access_token = request.args.get('access_token')
-    refresh_token = request.args.get('refresh_token')
-    token_type = request.args.get('token_type')
-    expires_in = request.args.get('expires_in')
-    error = request.args.get('error')
-    error_description = request.args.get('error_description')
+    # Support both GET (query params) and POST (JSON body from JS fetch)
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        access_token = data.get('access_token')
+        refresh_token = data.get('refresh_token')
+        token_type = data.get('token_type')
+        expires_in = data.get('expires_in')
+        error = data.get('error')
+        error_description = data.get('error_description')
+        type_ = data.get('type')
+    else:
+        access_token = request.args.get('access_token')
+        refresh_token = request.args.get('refresh_token')
+        token_type = request.args.get('token_type')
+        expires_in = request.args.get('expires_in')
+        error = request.args.get('error')
+        error_description = request.args.get('error_description')
+        type_ = request.args.get('type')
 
     if error:
-        flash(f'Error en confirmación: {error_description}', 'error')
+        msg = f'Error en confirmación: {error_description}'
+        if request.method == 'POST':
+            return jsonify({'error': msg}), 400
+        flash(msg, 'error')
         return redirect(url_for('login_view'))
 
     if not access_token:
-        flash('Token de acceso faltante', 'error')
+        msg = 'Token de acceso faltante'
+        if request.method == 'POST':
+            return jsonify({'error': msg}), 400
+        flash(msg, 'error')
         return redirect(url_for('login_view'))
 
     # Obtener info del usuario
     user = supabase_get_user(access_token)
     if not user:
-        flash('Error al obtener información del usuario', 'error')
+        msg = 'Error al obtener información del usuario'
+        if request.method == 'POST':
+            return jsonify({'error': msg}), 400
+        flash(msg, 'error')
         return redirect(url_for('login_view'))
 
     # Establecer sesión
@@ -416,10 +437,13 @@ def auth_callback():
         session['refresh_token'] = refresh_token
 
     # Si es recuperación de contraseña, redirigir a reset-password
-    type_ = request.args.get('type')
     if type_ == 'recovery':
+        if request.method == 'POST':
+            return jsonify({'redirect': url_for('reset_password')})
         return redirect(url_for('reset_password'))
 
+    if request.method == 'POST':
+        return jsonify({'redirect': url_for('dashboard')}) # Or confirmation page
     return render_template('confirmation.html')
 
 

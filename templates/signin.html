@@ -6,6 +6,49 @@
   <title>Entrar · Planificador</title>
   <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    // Supabase Auth Hash Handler (Cleaner AJAX version)
+    (function() {
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const data = {
+          access_token: params.get('access_token'),
+          refresh_token: params.get('refresh_token'),
+          type: params.get('type'),
+          expires_in: params.get('expires_in'),
+          error: params.get('error'),
+          error_description: params.get('error_description')
+        };
+
+        if (data.access_token || data.error) {
+          // Clear hash immediately to clean up URL
+          history.replaceState(null, null, ' ');
+
+          // Send to server via POST
+          fetch('/auth/callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => response.json())
+          .then(result => {
+            if (result.redirect) {
+              window.location.href = result.redirect;
+            } else if (result.error) {
+              console.error('Auth error:', result.error);
+              alert('Error de autenticación: ' + result.error);
+            }
+          })
+          .catch(err => {
+            console.error('Fetch error:', err);
+          });
+        }
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="container" style="background: transparent; box-shadow: none; padding: 0;">
