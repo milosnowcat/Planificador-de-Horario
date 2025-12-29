@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ schedule.name }} - Planificador UDG</title>
   <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2">
   <style>
     .horario-grid {
       display: grid;
@@ -80,6 +80,50 @@
       border-radius: 8px;
       border: 2px dashed #e6e9ef;
     }
+
+    /* Responsive Layout */
+    .schedule-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 900px) {
+      .schedule-layout {
+        grid-template-columns: 1fr;
+      }
+      
+      .schedule-actions-panel {
+        position: static !important;
+        margin-bottom: 20px;
+      }
+    }
+
+    /* Mobile Calendar Optimization */
+    .calendar-wrapper {
+      width: 100%;
+      /* Removed overflow-x to prevent scrolling preference */
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #e6e9ef;
+      border-radius: 8px;
+    }
+
+    /* Obsolete .calendar-grid-view removed */
+
+    .calendar-header-cell {
+      font-weight: 600;
+      padding: 10px 4px;
+      text-align: center;
+      font-size: 12px;
+      background: var(--primary-600);
+      color: white;
+      border-radius: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -93,21 +137,24 @@
         </div>
       {% endif %}
     {% endwith %}
-    <header>
-      <div>
-        <h1>{{ schedule.name }}</h1>
-        <div class="subtitle">Ver y gestionar tu horario guardado</div>
+    <header class="main-header">
+      <div class="header-brand">
+        <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+        <div>
+          <h1 class="header-title">{{ schedule.name }}</h1>
+          <div class="subtitle">Ver y gestionar tu horario guardado</div>
+        </div>
       </div>
-      <div>
-        <a href="/dashboard" class="btn">← Volver al Dashboard</a>
+      <div class="header-actions">
+        <a href="/dashboard" class="btn btn-outline btn-sm">← Volver al Dashboard</a>
       </div>
     </header>
 
-    <div style="padding: 40px; max-width: 1400px; margin: 0 auto;">
-      <div style="display: grid; grid-template-columns: 1fr 320px; gap: 24px; margin-bottom: 40px;">
+    <div class="schedule-container">
+      <div class="schedule-layout">
         
         <!-- Información del horario -->
-        <div style="background: var(--surface); padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div class="schedule-info-card">
           <h2 style="margin-bottom: 20px; color: var(--primary-600);">📋 Información del Horario</h2>
           
           <div style="display: grid; gap: 16px;">
@@ -140,7 +187,7 @@
         </div>
 
         <!-- Panel de acciones -->
-        <aside style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px;">
+        <aside class="schedule-actions-panel">
           <h3 style="margin-bottom: 16px; color: var(--primary-600); font-size: 16px;">Acciones</h3>
           <div style="display: grid; gap: 8px;">
             <button id="btnEditar" class="btn btn-primary" type="button" style="background: var(--primary-600); color: white; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">✏️ Editar</button>
@@ -175,20 +222,20 @@
       </div>
 
       <!-- Visualización del horario -->
-      <div style="background: var(--surface); padding: 28px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 40px;">
+      <div class="schedule-view-card">
         <h2 style="margin-bottom: 20px; color: var(--primary-600);">📅 Vista del Horario</h2>
         
-        <div id="horarioContainer">
+        <div id="horarioContainer" class="calendar-wrapper">
           <!-- Calendario grid -->
-          <div id="calendar" style="display: grid; grid-template-columns: 60px repeat(6, 1fr); gap: 4px; background: #e6e9ef; padding: 8px; border-radius: 8px; max-width: 100%; overflow-x: auto;">
+          <div id="calendar" class="calendar-grid">
             <!-- Header días -->
-            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;"></div>
-            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Lunes</div>
-            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Martes</div>
-            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Miércoles</div>
-            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Jueves</div>
-            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Viernes</div>
-            <div style="font-weight: 600; padding: 8px; text-align: center; font-size: 12px; background: var(--primary-600); color: white; border-radius: 4px;">Sábado</div>
+            <div class="calendar-cell header" style="background: var(--primary-600);">Hora</div>
+            <div class="calendar-cell header" style="background: var(--primary-600);">Lunes</div>
+            <div class="calendar-cell header" style="background: var(--primary-600);">Martes</div>
+            <div class="calendar-cell header" style="background: var(--primary-600);">Miércoles</div>
+            <div class="calendar-cell header" style="background: var(--primary-600);">Jueves</div>
+            <div class="calendar-cell header" style="background: var(--primary-600);">Viernes</div>
+            <div class="calendar-cell header" style="background: var(--primary-600);">Sábado</div>
             
             <!-- Generado por JavaScript -->
           </div>
@@ -233,6 +280,23 @@
           <button class="btn btn-outline" type="button" onclick="cerrarModal()" style="background: #f8fafc; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal de eliminación -->
+  <div id="deleteModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 28px; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+      <h3 style="margin-bottom: 12px; color: #0f172a; font-size: 18px; font-weight: 700;">¿Eliminar horario?</h3>
+      <p style="color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
+        Estás a punto de eliminar <strong>{{ schedule.name }}</strong>.<br>
+        Esta acción no se puede deshacer.
+      </p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button class="btn" type="button" onclick="closeDeleteModal()" style="background: #f1f5f9; color: #475569; padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Cancelar</button>
+        <button class="btn" type="button" id="confirmDeleteBtn" style="background: #ef4444; color: white; padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Sí, eliminar</button>
+      </div>
     </div>
   </div>
 
@@ -314,27 +378,15 @@
       const calendar = document.getElementById('calendar');
       const dias = [1, 2, 3, 4, 5, 6]; // L, M, W, J, V, S
       
-      // Determinar rango de horas dinámicamente
+      // Rango de horas fijo solicitado (7am - 10pm)
       let minHora = 7;
-      let maxHora = 21;
-
-      finalScheduleData.materias.forEach(m => {
-        if (m.horarios) {
-          m.horarios.forEach(h => {
-            const [start, end] = parseHoras(h.horas);
-            if (start !== null) {
-              if (start < minHora) minHora = Math.floor(start);
-              if (end !== null && end > maxHora) maxHora = Math.ceil(end);
-            }
-          });
-        }
-      });
+      let maxHora = 22;
 
       // Crear filas para cada hora
       for (let hora = minHora; hora < maxHora; hora++) {
         // Etiqueta de hora
         const horaLabel = document.createElement('div');
-        horaLabel.style.cssText = 'font-weight: 600; padding: 8px; text-align: center; font-size: 11px; background: #f0f4ff; border-radius: 4px;';
+        horaLabel.className = 'calendar-cell time';
         horaLabel.textContent = `${hora}:00`;
         calendar.appendChild(horaLabel);
         
@@ -344,14 +396,13 @@
           celda.className = 'calendar-cell';
           celda.dataset.hora = hora;
           celda.dataset.dia = dia;
+          // Use class for styling instead of inline styles where possible
+          // But keep height/position critical styles
           celda.style.cssText = `
             background: white;
-            border-radius: 4px;
-            height: 60px; /* Fixed height for pixel calculation */
+            height: 60px;
             position: relative;
-            /* overflow: hidden; REMOVED to allow spanning */
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            /* z-index removed to avoid stacking context issues */
           `;
           calendar.appendChild(celda);
         });
@@ -386,11 +437,14 @@
               const duration = horaFin - horaInicio;
               const offset = horaInicio - Math.floor(horaInicio);
               
-              // 60px por hora, 4px de gap
-              // Altura = (horas * 60) + (gaps cruzados * 4)
+              // Obtener la altura real de la celda (varía según responsive)
+              const celdaHeight = celda.offsetHeight || 60; // Default 60px si no está disponible
+              const celdaGap = 1; // 1px de gap
+              
+              // Altura = (duración en horas * altura de celda) + (gaps cruzados)
               const gapsCrossed = Math.floor(horaFin - 0.001) - Math.floor(horaInicio);
-              const heightPx = (duration * 60) + (gapsCrossed * 4);
-              const topPx = (offset * 60); // Offset dentro de la celda inicial
+              const heightPx = (duration * celdaHeight) + (gapsCrossed * celdaGap);
+              const topPx = (offset * celdaHeight); // Offset dentro de la celda inicial
 
               bloque.style.top = `${topPx}px`;
               bloque.style.height = `${heightPx}px`;
@@ -398,11 +452,17 @@
               
               bloque.title = `${materia.Materia}\n${horario.horas}\n${horario.aula || ''}`;
               
-              bloque.innerHTML = `
-                <div class="clase-title">${materia.Materia}</div>
-                <div class="clase-info">${horario.horas}</div>
-                <div class="clase-info" style="opacity: 0.8;">${horario.aula || ''}</div>
-              `;
+              // Optimize content for mobile
+              if (window.innerWidth <= 768) {
+                  // Use CSS classes for styling to ensure consistency
+                  bloque.innerHTML = `<div class="clase-title">${materia.Materia}</div>`;
+              } else {
+                  bloque.innerHTML = `
+                    <div class="clase-title">${materia.Materia}</div>
+                    <div class="clase-info">${horario.horas}</div>
+                    <div class="clase-info" style="opacity: 0.8;">${horario.aula || ''}</div>
+                  `;
+              }
               
               celda.appendChild(bloque);
             } else {
@@ -684,14 +744,33 @@
     }
 
     // ===== ELIMINAR =====
+    const deleteModal = document.getElementById('deleteModal');
+    
+    function openDeleteModal() {
+        deleteModal.style.display = 'flex';
+    }
+    
+    function closeDeleteModal() {
+        deleteModal.style.display = 'none';
+    }
+
     document.getElementById('btnEliminar').addEventListener('click', function() {
-      if (confirm('⚠️ ¿Estás SEGURO de que deseas ELIMINAR este horario?\n\nEsta acción NO se puede deshacer.')) {
+        openDeleteModal();
+    });
+    
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `/schedules/${scheduleId}/delete`;
         document.body.appendChild(form);
         form.submit();
-      }
+    });
+    
+    // Close on outside click
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            closeDeleteModal();
+        }
     });
 
     // Inicializar

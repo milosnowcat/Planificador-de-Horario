@@ -18,24 +18,26 @@
             </div>
           {% endif %}
         {% endwith %}
-        <header style="display:flex;justify-content:space-between;align-items:center; padding-bottom: 20px; border-bottom: 1px solid #e6e9ef; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" style="width: 48px; height: 48px; border-radius: 12px;">
+        <header class="main-header">
+            <div class="header-brand">
+                <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
                 <div>
-                    <h1 style="font-size: 24px; margin: 0; color: #1e293b;">Planificador UDG</h1>
-                    <p class="subtitle" style="margin: 0; font-size: 14px; color: #64748b;">Diseña tu semestre ideal</p>
+                    <h1 class="header-title">Planificador UDG</h1>
+                    <p class="subtitle">Diseña tu semestre ideal</p>
                 </div>
             </div>
-            <div>
+            <div class="header-actions">
                 {% if user %}
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 14px; color: #64748b;">Hola, {{ user.email }}</span>
-                    <a href="/dashboard" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px;">Mi Dashboard</a>
-                    <a href="/logout" class="btn btn-outline" style="padding: 8px 16px; font-size: 14px;">Salir</a>
+                <div class="user-menu">
+                    <span class="user-email">Hola, {{ user.email }}</span>
+                    <a href="/dashboard" class="btn btn-primary btn-sm">Mi Dashboard</a>
+                    <a href="/logout" class="btn btn-outline btn-sm">Salir</a>
                 </div>
                 {% else %}
-                <a href="/signup" class="btn btn-secondary" style="margin-right: 8px; font-size: 14px;">Crear Cuenta</a>
-                <a href="/login" class="btn btn-primary" style="font-size: 14px;">Iniciar Sesión</a>
+                <div class="auth-buttons">
+                    <a href="/signup" class="btn btn-secondary btn-sm">Crear Cuenta</a>
+                    <a href="/login" class="btn btn-primary btn-sm">Iniciar Sesión</a>
+                </div>
                 {% endif %}
             </div>
         </header>

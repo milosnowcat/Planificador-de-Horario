@@ -18,17 +18,20 @@
         </div>
       {% endif %}
     {% endwith %}
-    <header>
-      <div>
-        <h1>Planificador de Horarios UDG</h1>
-        <div class="subtitle">
-          Bienvenido, {{ user.email }}
-          {% if is_pro %}<span style="background: var(--primary-600); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px;">PRO</span>{% endif %}
+    <header class="main-header">
+      <div class="header-brand">
+        <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+        <div>
+          <h1 class="header-title">Planificador UDG</h1>
+          <div class="subtitle">
+            {{ user.email }}
+            {% if is_pro %}<span class="pro-badge">PRO</span>{% endif %}
+          </div>
         </div>
       </div>
-      <div>
-        <a href="/pricing" class="btn" style="margin-right: 8px;">Planes</a>
-        <a href="/logout" class="btn">Cerrar sesión</a>
+      <div class="header-actions">
+        <a href="/pricing" class="btn btn-outline btn-sm">Planes</a>
+        <a href="/logout" class="btn btn-secondary btn-sm">Cerrar sesión</a>
       </div>
     </header>
 

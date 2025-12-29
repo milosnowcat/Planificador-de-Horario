@@ -9,17 +9,20 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <div>
-        <h1>Planes de Suscripción</h1>
-        <div class="subtitle">Elige el plan que mejor se adapte a ti</div>
+    <header class="main-header">
+      <div class="header-brand">
+        <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+        <div>
+          <h1 class="header-title">Planes de Suscripción</h1>
+          <div class="subtitle">Elige el plan que mejor se adapte a ti</div>
+        </div>
       </div>
-      <div>
+      <div class="header-actions">
         {% if user %}
-          <a href="/dashboard" class="btn">Dashboard</a>
-          <a href="/logout" class="btn">Cerrar sesión</a>
+          <a href="/dashboard" class="btn btn-primary btn-sm">Dashboard</a>
+          <a href="/logout" class="btn btn-outline btn-sm">Cerrar sesión</a>
         {% else %}
-          <a href="/login" class="btn">Iniciar sesión</a>
+          <a href="/login" class="btn btn-primary btn-sm">Iniciar sesión</a>
         {% endif %}
       </div>
     </header>
