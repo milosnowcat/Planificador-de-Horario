@@ -1273,3 +1273,488 @@ header h1 {
     }
 }
 
+/* Schedule Detail Layout */
+.schedule-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+@media (max-width: 900px) {
+    .schedule-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .schedule-actions-panel {
+        position: static !important;
+        margin-bottom: 20px;
+    }
+}
+
+/* Schedule Detail Styles */
+.horario-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(6, 1fr);
+  gap: 1px;
+  background: #e6e9ef;
+  border: 2px solid #e6e9ef;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.horario-header, .horario-cell {
+  background: white;
+  padding: 8px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  border-right: 1px solid #e6e9ef;
+  border-bottom: 1px solid #e6e9ef;
+}
+
+.horario-cell {
+  font-weight: normal;
+  min-height: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.horario-header {
+  background: var(--primary-600);
+  color: white;
+  border: none;
+}
+
+.horario-cell.vacio {
+  background: #f8fafc;
+}
+
+.clase-item {
+  background: linear-gradient(135deg, rgba(90,103,216,0.1) 0%, rgba(90,103,216,0.05) 100%);
+  border-left: 4px solid var(--primary-600);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #0f172a;
+  margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.clase-item strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--primary-700);
+}
+
+.clase-item .clase-info {
+  font-size: 10px;
+  color: #6b7280;
+  margin: 1px 0;
+}
+
+.vacio-msg {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40px 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 2px dashed #e6e9ef;
+}
+
+/* Mobile Calendar Optimization */
+.calendar-wrapper {
+  width: 100%;
+  /* Removed overflow-x to prevent scrolling preference */
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e6e9ef;
+  border-radius: 8px;
+}
+
+.calendar-header-cell {
+  font-weight: 600;
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 12px;
+  background: var(--primary-600);
+  color: white;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Schedule Detail Info Panel */
+.info-card {
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.info-card.flex {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-card.flex .info-label {
+    margin: 0;
+}
+
+.info-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 4px 0;
+}
+
+.info-value {
+    margin: 0;
+    font-size: 14px;
+}
+
+.info-value.large {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.info-value.notes {
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.color-preview {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    border: 2px solid #e6e9ef;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.action-btn {
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.action-btn.primary {
+    background: var(--primary-600);
+    color: white;
+    border: none;
+}
+
+.action-btn.outline {
+    background: white;
+    border: 1px solid #e6e9ef;
+    color: inherit;
+}
+
+.action-btn.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.action-btn.danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    margin-top: 8px;
+}
+
+.schedule-actions-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.schedule-info-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.section-title {
+    margin-bottom: 20px;
+    color: var(--primary-600);
+}
+
+.subsection-title {
+    margin-bottom: 16px;
+    color: var(--primary-600);
+    font-size: 16px;
+}
+
+.plan-warning-box {
+    margin-top: 16px;
+    padding: 12px;
+    background: #fff3cd;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.plan-warning-title {
+    color: #856404;
+    font-size: 13px;
+    margin: 0 0 8px 0;
+}
+
+.plan-warning-text {
+    color: #856404;
+    font-size: 12px;
+    margin: 0 0 8px 0;
+}
+
+.plan-warning-link {
+    color: #856404;
+    text-decoration: underline;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Flash Messages */
+.flash-messages-container {
+    padding: 20px 20px 0 20px;
+}
+
+/* Calendar View */
+.calendar-section-title {
+    margin-bottom: 20px;
+    color: var(--primary-600);
+}
+
+.calendar-cell.header {
+    background: var(--primary-600);
+}
+
+.materias-legend {
+    margin-top: 20px;
+}
+
+.back-link-container {
+    text-align: center;
+    margin-top: 40px;
+}
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--surface);
+    padding: 28px;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-title {
+    margin-bottom: 20px;
+    color: #0f172a;
+    font-size: 18px;
+}
+
+.modal-title.delete-title {
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.modal-form {
+    display: grid;
+    gap: 16px;
+}
+
+.form-label {
+    font-size: 13px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-input {
+    padding: 10px;
+    border: 1px solid #e6e9ef;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.materias-list-container {
+    border: 1px solid #e6e9ef;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+.modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+    border-top: 1px solid #e6e9ef;
+    padding-top: 16px;
+}
+
+.modal-content.center {
+    text-align: center;
+    max-width: 400px;
+}
+
+.modal-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.modal-text {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.modal-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.btn-cancel {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-confirm-delete {
+    background: #ef4444;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* JS Generated Elements */
+.legend-title {
+    margin: 0 0 12px 0;
+    color: var(--primary-600);
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.legend-item {
+    padding: 12px;
+    border-radius: 6px;
+}
+
+.legend-item-title {
+    font-weight: 600;
+}
+
+.legend-item-nrc {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 4px 0;
+}
+
+.legend-item-prof {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.edit-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: white;
+    border: 1px solid #e6e9ef;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.edit-item-info {
+    font-size: 13px;
+}
+
+.edit-item-title {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.edit-item-subtitle {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.btn-delete-small {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.empty-list-msg {
+    padding: 12px;
+    color: #9ca3af;
+    font-size: 13px;
+    text-align: center;
+}
+
+.warning-msg-small {
+    padding: 8px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 11px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.no-classes-msg {
+    grid-column: 1/-1;
+    padding: 20px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.clase-aula {
+    opacity: 0.8;
+}
+

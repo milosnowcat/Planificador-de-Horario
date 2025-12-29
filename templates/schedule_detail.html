@@ -6,131 +6,13 @@
   <title>{{ schedule.name }} - Planificador UDG</title>
   <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2">
-  <style>
-    .horario-grid {
-      display: grid;
-      grid-template-columns: 80px repeat(6, 1fr);
-      gap: 1px;
-      background: #e6e9ef;
-      border: 2px solid #e6e9ef;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    
-    .horario-header, .horario-cell {
-      background: white;
-      padding: 8px;
-      min-height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-      border-right: 1px solid #e6e9ef;
-      border-bottom: 1px solid #e6e9ef;
-    }
-    
-    .horario-cell {
-      font-weight: normal;
-      min-height: 60px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .horario-header {
-      background: var(--primary-600);
-      color: white;
-      border: none;
-    }
-    
-    .horario-cell.vacio {
-      background: #f8fafc;
-    }
-    
-    .clase-item {
-      background: linear-gradient(135deg, rgba(90,103,216,0.1) 0%, rgba(90,103,216,0.05) 100%);
-      border-left: 4px solid var(--primary-600);
-      padding: 6px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      color: #0f172a;
-      margin-bottom: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    
-    .clase-item strong {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 2px;
-      color: var(--primary-700);
-    }
-    
-    .clase-item .clase-info {
-      font-size: 10px;
-      color: #6b7280;
-      margin: 1px 0;
-    }
-    
-    .vacio-msg {
-      text-align: center;
-      color: #9ca3af;
-      padding: 40px 20px;
-      background: #f8fafc;
-      border-radius: 8px;
-      border: 2px dashed #e6e9ef;
-    }
 
-    /* Responsive Layout */
-    .schedule-layout {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    @media (max-width: 900px) {
-      .schedule-layout {
-        grid-template-columns: 1fr;
-      }
-      
-      .schedule-actions-panel {
-        position: static !important;
-        margin-bottom: 20px;
-      }
-    }
-
-    /* Mobile Calendar Optimization */
-    .calendar-wrapper {
-      width: 100%;
-      /* Removed overflow-x to prevent scrolling preference */
-      padding-bottom: 12px;
-      margin-bottom: 12px;
-      border: 1px solid #e6e9ef;
-      border-radius: 8px;
-    }
-
-    /* Obsolete .calendar-grid-view removed */
-
-    .calendar-header-cell {
-      font-weight: 600;
-      padding: 10px 4px;
-      text-align: center;
-      font-size: 12px;
-      background: var(--primary-600);
-      color: white;
-      border-radius: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="flash-messages" style="padding: 20px 20px 0 20px;">
+        <div class="flash-messages flash-messages-container">
           {% for category, message in messages %}
             <div class="alert alert-{{ category }}">{{ message }}</div>
           {% endfor %}
@@ -155,32 +37,32 @@
         
         <!-- Información del horario -->
         <div class="schedule-info-card">
-          <h2 style="margin-bottom: 20px; color: var(--primary-600);">📋 Información del Horario</h2>
+          <h2 class="section-title">📋 Información del Horario</h2>
           
-          <div style="display: grid; gap: 16px;">
-            <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
-              <p style="color: var(--muted); font-size: 13px; margin: 0 0 4px 0;">Nombre</p>
-              <p style="margin: 0; font-size: 16px; font-weight: 600;">{{ schedule.name }}</p>
+          <div class="schedule-info-grid">
+            <div class="info-card">
+              <p class="info-label">Nombre</p>
+              <p class="info-value large">{{ schedule.name }}</p>
             </div>
 
             {% if schedule.created_at %}
-            <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
-              <p style="color: var(--muted); font-size: 13px; margin: 0 0 4px 0;">Creado</p>
-              <p style="margin: 0; font-size: 14px;">{{ schedule.created_at[:10] }}</p>
+            <div class="info-card">
+              <p class="info-label">Creado</p>
+              <p class="info-value">{{ schedule.created_at[:10] }}</p>
             </div>
             {% endif %}
 
             {% if schedule.color %}
-            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
-              <p style="color: var(--muted); font-size: 13px; margin: 0;">Color</p>
-              <div style="width: 50px; height: 50px; background: {{ schedule.color }}; border-radius: 8px; border: 2px solid #e6e9ef; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+            <div class="info-card flex">
+              <p class="info-label">Color</p>
+              <div class="color-preview" style="background: {{ schedule.color }};"></div>
             </div>
             {% endif %}
 
             {% if schedule.notes %}
-            <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
-              <p style="color: var(--muted); font-size: 13px; margin: 0 0 4px 0;">Notas</p>
-              <p style="margin: 0; white-space: pre-wrap; font-size: 13px; line-height: 1.5;">{{ schedule.notes }}</p>
+            <div class="info-card">
+              <p class="info-label">Notas</p>
+              <p class="info-value notes">{{ schedule.notes }}</p>
             </div>
             {% endif %}
           </div>
@@ -188,34 +70,34 @@
 
         <!-- Panel de acciones -->
         <aside class="schedule-actions-panel">
-          <h3 style="margin-bottom: 16px; color: var(--primary-600); font-size: 16px;">Acciones</h3>
-          <div style="display: grid; gap: 8px;">
-            <button id="btnEditar" class="btn btn-primary" type="button" style="background: var(--primary-600); color: white; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">✏️ Editar</button>
+          <h3 class="subsection-title">Acciones</h3>
+          <div class="schedule-actions-grid">
+            <button id="btnEditar" class="btn btn-primary action-btn primary" type="button">✏️ Editar</button>
             
             {% if is_pro %}
-            <a href="/schedules/{{ schedule.id }}/download-pdf" class="btn btn-outline" style="background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; text-decoration: none; text-align: center; cursor: pointer; font-weight: 600;">📄 Descargar PDF</a>
+            <a href="/schedules/{{ schedule.id }}/download-pdf" class="btn btn-outline action-btn outline">📄 Descargar PDF</a>
             {% else %}
-            <button class="btn btn-outline" type="button" disabled style="cursor: not-allowed; opacity: 0.5; background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; font-weight: 600;" title="Solo disponible en Plan Pro">📄 Descargar PDF</button>
+            <button class="btn btn-outline action-btn outline disabled" type="button" disabled title="Solo disponible en Plan Pro">📄 Descargar PDF</button>
             {% endif %}
             
             {% if is_pro %}
-            <button id="btnCompartir" class="btn btn-outline" type="button" style="background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">🔗 Compartir</button>
+            <button id="btnCompartir" class="btn btn-outline action-btn outline" type="button">🔗 Compartir</button>
             {% else %}
-            <button class="btn btn-outline" type="button" disabled style="cursor: not-allowed; opacity: 0.5; background: white; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; font-weight: 600;" title="Solo disponible en Plan Pro">🔗 Compartir</button>
+            <button class="btn btn-outline action-btn outline disabled" type="button" disabled title="Solo disponible en Plan Pro">🔗 Compartir</button>
             {% endif %}
             
-            <button id="btnEliminar" class="btn" style="background: #ef4444; color: white; margin-top: 8px; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;" type="button">🗑️ Eliminar</button>
+            <button id="btnEliminar" class="btn action-btn danger" type="button">🗑️ Eliminar</button>
           </div>
 
           {% if not is_pro %}
-          <div style="margin-top: 16px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
-            <p style="color: #856404; font-size: 13px; margin: 0 0 8px 0;">
+          <div class="plan-warning-box">
+            <p class="plan-warning-title">
               <strong>Plan Gratis</strong>
             </p>
-            <p style="color: #856404; font-size: 12px; margin: 0 0 8px 0;">
+            <p class="plan-warning-text">
               PDF y Compartir disponibles solo en Plan Pro.
             </p>
-            <a href="/pricing" style="color: #856404; text-decoration: underline; font-size: 12px; font-weight: 600;">Ver planes →</a>
+            <a href="/pricing" class="plan-warning-link">Ver planes →</a>
           </div>
           {% endif %}
         </aside>
@@ -223,79 +105,79 @@
 
       <!-- Visualización del horario -->
       <div class="schedule-view-card">
-        <h2 style="margin-bottom: 20px; color: var(--primary-600);">📅 Vista del Horario</h2>
+        <h2 class="calendar-section-title">📅 Vista del Horario</h2>
         
         <div id="horarioContainer" class="calendar-wrapper">
           <!-- Calendario grid -->
           <div id="calendar" class="calendar-grid">
             <!-- Header días -->
-            <div class="calendar-cell header" style="background: var(--primary-600);">Hora</div>
-            <div class="calendar-cell header" style="background: var(--primary-600);">Lunes</div>
-            <div class="calendar-cell header" style="background: var(--primary-600);">Martes</div>
-            <div class="calendar-cell header" style="background: var(--primary-600);">Miércoles</div>
-            <div class="calendar-cell header" style="background: var(--primary-600);">Jueves</div>
-            <div class="calendar-cell header" style="background: var(--primary-600);">Viernes</div>
-            <div class="calendar-cell header" style="background: var(--primary-600);">Sábado</div>
+            <div class="calendar-cell header">Hora</div>
+            <div class="calendar-cell header">Lunes</div>
+            <div class="calendar-cell header">Martes</div>
+            <div class="calendar-cell header">Miércoles</div>
+            <div class="calendar-cell header">Jueves</div>
+            <div class="calendar-cell header">Viernes</div>
+            <div class="calendar-cell header">Sábado</div>
             
             <!-- Generado por JavaScript -->
           </div>
           
           <!-- Leyenda de materias -->
-          <div id="materiasLegend" style="margin-top: 20px;"></div>
+          <div id="materiasLegend" class="materias-legend"></div>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 40px;">
+      <div class="back-link-container">
         <a href="/dashboard" class="btn btn-outline">Volver al Dashboard</a>
       </div>
     </div>
   </div>
 
   <!-- Modal de edición -->
-  <div id="editModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
-    <div style="background: var(--surface); padding: 28px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
-      <h3 style="margin-bottom: 20px; color: #0f172a; font-size: 18px;">✏️ Editar Horario</h3>
+  <div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="modal-title">✏️ Editar Horario</h3>
       
-      <form id="editForm" method="POST" style="display: grid; gap: 16px;">
+      <form id="editForm" method="POST" class="modal-form">
         <!-- Nombre -->
         <div>
-          <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 8px; font-weight: 600;">Nombre del horario</label>
-          <input class="form-control" type="text" name="name" id="editName" placeholder="Ej: Semestre 2025" required style="padding: 10px; border: 1px solid #e6e9ef; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box;">
+          <label class="form-label">Nombre del horario</label>
+          <input class="form-control form-input" type="text" name="name" id="editName" placeholder="Ej: Semestre 2025" required>
         </div>
         
         <!-- Color y Notas eliminados -->
 
         <!-- Materias -->
         <div>
-          <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 8px; font-weight: 600;">Materias</label>
-          <div id="editMateriasList" style="border: 1px solid #e6e9ef; border-radius: 6px; max-height: 200px; overflow-y: auto; background: #f8fafc;">
+          <label class="form-label">Materias</label>
+          <div id="editMateriasList" class="materias-list-container">
             <!-- Items populated by JS -->
           </div>
           <input type="hidden" name="deleted_items" id="deletedItemsInput">
         </div>
         
         <!-- Botones -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; border-top: 1px solid #e6e9ef; padding-top: 16px;">
-          <button class="btn btn-primary" type="submit" style="background: var(--primary-600); color: white; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">💾 Guardar cambios</button>
-          <button class="btn btn-outline" type="button" onclick="cerrarModal()" style="background: #f8fafc; border: 1px solid #e6e9ef; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
+        <div class="modal-actions">
+          <button class="btn btn-primary action-btn primary" type="submit">💾 Guardar cambios</button>
+          <button class="btn btn-outline action-btn outline" type="button" onclick="cerrarModal()">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Modal de eliminación -->
-  <div id="deleteModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 28px; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); text-align: center;">
-      <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-      <h3 style="margin-bottom: 12px; color: #0f172a; font-size: 18px; font-weight: 700;">¿Eliminar horario?</h3>
-      <p style="color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
+  <div id="deleteModal" class="modal-overlay">
+    <div class="modal-content center">
+      <div class="modal-icon">⚠️</div>
+      <h3 class="modal-title delete-title">¿Eliminar horario?</h3>
+      <p class="modal-text">
         Estás a punto de eliminar <strong>{{ schedule.name }}</strong>.<br>
         Esta acción no se puede deshacer.
       </p>
       
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <button class="btn" type="button" onclick="closeDeleteModal()" style="background: #f1f5f9; color: #475569; padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Cancelar</button>
-        <button class="btn" type="button" id="confirmDeleteBtn" style="background: #ef4444; color: white; padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Sí, eliminar</button>
+      <div class="modal-actions-grid">
+        <button class="btn btn-cancel" type="button" onclick="closeDeleteModal()">Cancelar</button>
+        <button class="btn btn-confirm-delete" type="button" id="confirmDeleteBtn">Sí, eliminar</button>
       </div>
     </div>
   </div>
@@ -367,7 +249,7 @@
 
       if (!finalScheduleData || !finalScheduleData.materias || finalScheduleData.materias.length === 0) {
         document.getElementById('calendar').innerHTML += `
-          <div style="grid-column: 1/-1; padding: 20px; text-align: center; color: #9ca3af;">
+          <div class="no-classes-msg">
             📋 Sin materias asignadas
           </div>
         `;
@@ -460,7 +342,7 @@
                   bloque.innerHTML = `
                     <div class="clase-title">${materia.Materia}</div>
                     <div class="clase-info">${horario.horas}</div>
-                    <div class="clase-info" style="opacity: 0.8;">${horario.aula || ''}</div>
+                    <div class="clase-info clase-aula">${horario.aula || ''}</div>
                   `;
               }
               
@@ -474,15 +356,16 @@
       
       // Leyenda
       const leyenda = document.getElementById('materiasLegend');
-      let html = '<h4 style="margin: 0 0 12px 0; color: var(--primary-600);">📚 Materias Guardadas</h4>';
-      html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;">';
+      let html = '<h4 class="legend-title">📚 Materias Guardadas</h4>';
+      html += '<div class="legend-grid">';
       
       finalScheduleData.materias.forEach(m => {
+        const color = m.color || '#5a67d8';
         html += `
-          <div style="padding: 12px; background: ${m.color || '#5a67d8'}15; border-left: 4px solid ${m.color || '#5a67d8'}; border-radius: 6px;">
-            <div style="font-weight: 600; color: ${m.color || '#5a67d8'};">${m.Materia}</div>
-            <div style="font-size: 12px; color: #6b7280; margin: 4px 0;">NRC: ${m.NRC}</div>
-            <div style="font-size: 11px; color: #9ca3af;">Docente: ${m.Profesor || 'N/A'}</div>
+          <div class="legend-item" style="background: ${color}15; border-left: 4px solid ${color};">
+            <div class="legend-item-title" style="color: ${color};">${m.Materia}</div>
+            <div class="legend-item-nrc">NRC: ${m.NRC}</div>
+            <div class="legend-item-prof">Docente: ${m.Profesor || 'N/A'}</div>
           </div>
         `;
       });
@@ -598,13 +481,13 @@
 
             Object.values(grouped).forEach(group => {
                 const div = document.createElement('div');
-                div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #e6e9ef; background: white;';
+                div.className = 'edit-item-row';
                 div.innerHTML = `
-                    <div style="font-size: 13px;">
-                        <div style="font-weight: 600; color: #1e293b;">${group.title}</div>
-                        <div style="font-size: 11px; color: #64748b;">${group.code || ''}</div>
+                    <div class="edit-item-info">
+                        <div class="edit-item-title">${group.title}</div>
+                        <div class="edit-item-subtitle">${group.code || ''}</div>
                     </div>
-                    <button type="button" class="btn-delete-item" style="background: #fee2e2; color: #ef4444; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Eliminar</button>
+                    <button type="button" class="btn-delete-item btn-delete-small">Eliminar</button>
                 `;
                 
                 const btn = div.querySelector('.btn-delete-item');
@@ -624,7 +507,7 @@
         // Check if we have metadata items (legacy format)
         else if (finalScheduleData && finalScheduleData.materias && finalScheduleData.materias.length > 0) {
              const warning = document.createElement('div');
-             warning.style.cssText = 'padding: 8px; background: #fff7ed; color: #c2410c; font-size: 11px; margin-bottom: 8px; border-radius: 4px; text-align: center;';
+             warning.className = 'warning-msg-small';
              warning.textContent = 'Modo compatibilidad: Editando metadatos directamente.';
              container.appendChild(warning);
 
@@ -634,13 +517,13 @@
              currentMaterias.forEach((materia, index) => {
                  const div = document.createElement('div');
                  div.id = `meta-item-${index}`;
-                 div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #e6e9ef; background: white;';
+                 div.className = 'edit-item-row';
                  div.innerHTML = `
-                    <div style="font-size: 13px;">
-                        <div style="font-weight: 600; color: #1e293b;">${materia.Materia}</div>
-                        <div style="font-size: 11px; color: #64748b;">${materia.Clave || materia.NRC || ''}</div>
+                    <div class="edit-item-info">
+                        <div class="edit-item-title">${materia.Materia}</div>
+                        <div class="edit-item-subtitle">${materia.Clave || materia.NRC || ''}</div>
                     </div>
-                    <button type="button" class="btn-delete-meta" style="background: #fee2e2; color: #ef4444; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Eliminar</button>
+                    <button type="button" class="btn-delete-meta btn-delete-small">Eliminar</button>
                  `;
                  
                  const btn = div.querySelector('.btn-delete-meta');
@@ -658,7 +541,7 @@
              });
         }
         else {
-            container.innerHTML = '<div style="padding: 12px; color: #9ca3af; font-size: 13px; text-align: center;">No hay materias registradas</div>';
+            container.innerHTML = '<div class="empty-list-msg">No hay materias registradas</div>';
         }
     }
 
