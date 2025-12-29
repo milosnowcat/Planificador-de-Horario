@@ -25,6 +25,8 @@ from supabase_client import (
     supabase_update_schedule,
     supabase_get_schedule_items,
     supabase_delete_schedule_items,
+    supabase_reset_password_email,
+    supabase_update_user_password,
 )
 
 app = Flask(__name__)
@@ -329,6 +331,57 @@ def auth_register():
     return redirect(url_for('login_view'))
 
 
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Página de recuperación de contraseña."""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        if not email:
+            flash('Por favor ingresa tu correo', 'error')
+            return redirect(url_for('forgot_password'))
+        
+        success = supabase_reset_password_email(email)
+        if success:
+            flash('Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.', 'success')
+        else:
+            flash('Error al enviar el correo. Intenta más tarde.', 'error')
+        
+        return redirect(url_for('login_view'))
+        
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    """Página para establecer nueva contraseña."""
+    # Verificar que el usuario esté autenticado (vía link de recuperación)
+    if not session.get('access_token'):
+        flash('Enlace inválido o expirado. Por favor solicita uno nuevo.', 'error')
+        return redirect(url_for('forgot_password'))
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm = request.form.get('confirm_password')
+        
+        if not password or len(password) < 6:
+            flash('La contraseña debe tener al menos 6 caracteres', 'error')
+            return redirect(url_for('reset_password'))
+            
+        if password != confirm:
+            flash('Las contraseñas no coinciden', 'error')
+            return redirect(url_for('reset_password'))
+            
+        # Actualizar contraseña en Supabase
+        user = supabase_update_user_password(session['access_token'], password)
+        
+        if user:
+            flash('Contraseña actualizada correctamente. Por favor inicia sesión.', 'success')
+            session.clear() # Cerrar sesión para obligar a login con nueva pass
+            return redirect(url_for('login_view'))
+        else:
+            flash('Error al actualizar la contraseña', 'error')
+            
+    return render_template('reset_password.html')
+
 @app.route('/auth/callback')
 def auth_callback():
     """Manejar la confirmación de email desde Supabase."""
@@ -358,6 +411,11 @@ def auth_callback():
     session['user'] = user
     if refresh_token:
         session['refresh_token'] = refresh_token
+
+    # Si es recuperación de contraseña, redirigir a reset-password
+    type_ = request.args.get('type')
+    if type_ == 'recovery':
+        return redirect(url_for('reset_password'))
 
     return render_template('confirmation.html')
 

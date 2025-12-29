@@ -46,6 +46,47 @@ def supabase_sign_up(email, password):
         return None
 
 
+def supabase_reset_password_email(email):
+    """Send password reset email."""
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        return None
+    url = f"{SUPABASE_URL}/auth/v1/recover"
+    payload = {"email": email}
+    try:
+        r = requests.post(url, json=payload, headers=headers_base, timeout=10)
+        # Supabase returns 200 OK even if email doesn't exist (security)
+        # or empty JSON body {}
+        if r.ok:
+            return True
+        print('supabase_reset_password_email error:', r.status_code, r.text)
+        return False
+    except Exception as e:
+        print('supabase_reset_password_email exception:', str(e))
+        return False
+
+
+def supabase_update_user_password(access_token, new_password):
+    """Update user password."""
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        return None
+    url = f"{SUPABASE_URL}/auth/v1/user"
+    headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    payload = {"password": new_password}
+    try:
+        r = requests.put(url, json=payload, headers=headers, timeout=10)
+        if r.ok:
+            return r.json()
+        print('supabase_update_user_password error:', r.status_code, r.text)
+        return None
+    except Exception as e:
+        print('supabase_update_user_password exception:', str(e))
+        return None
+
+
 def supabase_get_schedules(access_token, user_id):
     """Get schedules for a given user using user's access token (so RLS applies)."""
     if not SUPABASE_URL:
