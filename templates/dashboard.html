@@ -48,7 +48,7 @@
         <h3>Acciones rápidas</h3>
         <div class="dashboard-actions">
           {% if can_create_more %}
-            <a href="/" class="btn btn-primary" style="text-align: center; text-decoration: none;">Crear nuevo horario</a>
+            <a href="/planner" class="btn btn-primary" style="text-align: center; text-decoration: none;">Crear nuevo horario</a>
           {% else %}
             <button class="btn" style="background: #e6e9ef; cursor: not-allowed;" disabled>
               Límite: {{ schedule_count }}/{{ max_schedules }}

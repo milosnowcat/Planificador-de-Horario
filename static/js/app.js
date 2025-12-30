@@ -197,44 +197,34 @@ function obtenerConflicto(nuevaMateria) {
 
 // Mostrar error visual de conflicto
 function mostrarErrorConflicto(nuevaMateria, conflicto) {
-    // Remover modal anterior si existe
-    const modalAnterior = document.getElementById('conflictoModal');
-    if (modalAnterior) modalAnterior.remove();
-    
-    const modal = document.createElement('div');
-    modal.id = 'conflictoModal';
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-        <div class="modal-content modal-error">
-            <div class="modal-header">
-                <span class="modal-icon">⚠️</span>
-                <h3>Conflicto de Horario</h3>
-            </div>
-            <div class="modal-body">
+    Swal.fire({
+        title: 'Conflicto de Horario',
+        html: `
+            <div style="text-align: left; margin-top: 10px;">
                 <p>La materia <strong>${nuevaMateria.Materia}</strong> tiene conflicto con:</p>
-                <div class="conflicto-info">
-                    <div class="conflicto-materia" style="border-left-color: ${conflicto.materiaExistente.color}">
-                        <strong>${conflicto.materiaExistente.Materia}</strong>
-                        <span>${conflicto.horarioConflicto.dias} ${conflicto.horarioConflicto.horas}</span>
+                <div style="margin: 15px 0; padding: 12px; border-left: 5px solid ${conflicto.materiaExistente.color}; background: #f1f5f9; border-radius: 4px;">
+                    <div style="font-weight: 600; color: #1e293b;">${conflicto.materiaExistente.Materia}</div>
+                    <div style="font-size: 0.85em; color: #64748b; margin-top: 4px;">
+                        <i class="fas fa-calendar-alt"></i> ${conflicto.horarioConflicto.dias} 
+                        <i class="fas fa-clock" style="margin-left: 8px;"></i> ${conflicto.horarioConflicto.horas}
                     </div>
                 </div>
-                <p class="modal-hint">No es posible agregar materias con horarios que se traslapen.</p>
+                <p style="font-size: 0.9em; color: #6b7280; border-top: 1px solid #e2e8f0; pt: 10px; margin-top: 15px;">
+                    No es posible agregar materias que se traslapen en el mismo horario.
+                </p>
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-modal-close" onclick="cerrarModal()">Entendido</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Cerrar al hacer clic fuera
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) cerrarModal();
+        `,
+        icon: 'error',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#667eea',
+        customClass: {
+            container: 'planner-swal-container',
+            popup: 'planner-swal-popup'
+        }
     });
 }
 
-// Cerrar modal
+// Cerrar modal (mantenido por compatibilidad si se usa en otros lados, aunque ahora usamos Swal)
 function cerrarModal() {
     const modal = document.getElementById('conflictoModal');
     if (modal) {
