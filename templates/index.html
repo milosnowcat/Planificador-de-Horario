@@ -3,73 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planificador de Horario - SIIAU UDG</title>
+    <title>Planificador UDG - Tu Portal Universitario</title>
     <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script>
-      // Supabase Auth Hash Handler (Cleaner AJAX version)
-      (function() {
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          const hash = window.location.hash.substring(1);
-          const params = new URLSearchParams(hash);
-          const data = {
-            access_token: params.get('access_token'),
-            refresh_token: params.get('refresh_token'),
-            type: params.get('type'),
-            expires_in: params.get('expires_in'),
-            error: params.get('error'),
-            error_description: params.get('error_description')
-          };
-
-          if (data.access_token || data.error) {
-            // Clear hash immediately to clean up URL
-            history.replaceState(null, null, ' ');
-
-            // Send to server via POST
-            fetch('/auth/callback', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-              if (result.redirect) {
-                window.location.href = result.redirect;
-              } else if (result.error) {
-                console.error('Auth error:', result.error);
-                alert('Error de autenticación: ' + result.error);
-              }
-            })
-            .catch(err => {
-              console.error('Fetch error:', err);
-            });
-          }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hero-section {
+            text-align: center;
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border-radius: 0 0 60px 60px;
+            margin-bottom: 50px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
         }
-      })();
-    </script>
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        .hero-subtitle {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .feature-card {
+            background: white;
+            padding: 50px 35px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #f1f5f9;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.1);
+            border-color: #3b82f6;
+        }
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 90px;
+        }
+        .feature-card h3 {
+            font-size: 1.6rem;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .feature-card p {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+        .btn-feature {
+            margin-top: auto;
+            padding: 12px 30px;
+            background: #1e293b;
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .feature-card:hover .btn-feature {
+            background: #3b82f6;
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(59, 130, 246, 0.3);
+        }
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.2rem; }
+            .hero-subtitle { font-size: 1.1rem; }
+            .features-grid { grid-template-columns: 1fr; padding: 10px; }
+            .header-actions { display: none; }
+        }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .header-logo {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: white;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .feature-icon i {
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-messages" style="padding: 20px 20px 0 20px;">
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-        <header class="main-header">
+    <div class="container" style="background: #f8fafc; box-shadow: none;">
+        <header class="main-header" style="background: white; border-radius: 18px 18px 0 0;">
             <div class="header-brand">
                 <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
                 <div>
                     <h1 class="header-title">Planificador UDG</h1>
-                    <p class="subtitle">Diseña tu semestre ideal</p>
                 </div>
             </div>
             <div class="header-actions">
+                <a href="/planner" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-calendar-alt"></i> Horarios</a>
+                <a href="/professors" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-chalkboard-teacher"></i> Profesores</a>
+                <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
                 {% if user %}
                 <div class="user-menu">
                     <span class="user-email">Hola, {{ user.email }}</span>
@@ -78,122 +148,47 @@
                 </div>
                 {% else %}
                 <div class="auth-buttons">
-                    <a href="/signup" class="btn btn-secondary btn-sm">Crear Cuenta</a>
                     <a href="/login" class="btn btn-primary btn-sm">Iniciar Sesión</a>
+                    <a href="/signup" class="btn btn-outline btn-sm">Registrarse</a>
                 </div>
                 {% endif %}
             </div>
         </header>
 
-        <div class="main-content">
-            <div class="left-panel">
-                <!-- Panel de búsqueda -->
-                <div class="search-panel" style="border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h2 style="font-size: 18px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">🔍 Buscar Materias</h2>
-                    
-                    <div class="form-group">
-                        <label for="ciclo" style="font-size: 13px; color: #64748b; font-weight: 600;">Ciclo Escolar</label>
-                        <select id="ciclo" class="form-control" style="background-color: #f8fafc;">
-                            <option value="202610">2026-A</option>
-                            <option value="202520">2025-B</option>
-                            <option value="202510">2025-A</option>                            
-                        </select>
-                    </div>
+        <section class="hero-section">
+            <h1 class="hero-title">Tu vida universitaria, simplificada.</h1>
+            <p class="hero-subtitle">La herramienta definitiva para organizar tus horarios, evaluar profesores y descubrir beneficios.</p>
+        </section>
 
-                    <div class="form-group">
-                        <label for="centro" style="font-size: 13px; color: #64748b; font-weight: 600;">Centro Universitario</label>
-                        <select id="centro" class="form-control" style="background-color: #f8fafc;">
-                            <option value="">Selecciona un centro...</option>
-                            {% for codigo, nombre in centros.items() %}
-                            <option value="{{ codigo }}">{{ nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+        <div class="features-grid">
+            <!-- Opción 1: Hacer Horario -->
+            <a href="/planner" class="feature-card">
+                <div class="feature-icon"><i class="fas fa-calendar-alt" style="color: #3b82f6;"></i></div>
+                <h3>Hacer tu Horario</h3>
+                <p>Busca materias del SIIAU y diseña tu horario ideal sin traslapes de forma visual y rápida.</p>
+                <span class="btn-feature">Ir al Planificador</span>
+            </a>
 
-                    <div class="form-group">
-                        <label for="carrera" style="font-size: 13px; color: #64748b; font-weight: 600;">Carrera (Opcional)</label>
-                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO, IINF..." style="background-color: #f8fafc;">
-                    </div>
+            <!-- Opción 2: Calificar Profesores -->
+            <a href="/professors" class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chalkboard-teacher" style="color: #10b981;"></i></div>
+                <h3>Calificar Profesores</h3>
+                <p>Consulta opiniones de otros alumnos y califica a tus docentes para ayudar a la comunidad.</p>
+                <span class="btn-feature">Ver Profesores</span>
+            </a>
 
-                    <button id="btnBuscar" class="btn btn-primary" style="width: 100%; margin-top: 8px; display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <span>Buscar Materias</span>
-                    </button>
-
-                    <div id="loading" class="loading" style="display: none; margin-top: 16px;">
-                        <div class="spinner" style="width: 24px; height: 24px; border-width: 3px;"></div>
-                        <p style="font-size: 13px; color: #64748b;">Consultando SIIAU...</p>
-                    </div>
-                </div>
-
-                <!-- Lista de materias encontradas -->
-                <div id="materiasContainer" class="materias-container" style="display: none; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"> 
-                    <div class="materias-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px;">
-                        <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 8px;">Resultados (<span id="totalMaterias">0</span>)</h3>
-                        <div class="search-box" style="margin: 0;">
-                            <input type="text" id="filtroMaterias" class="form-control" placeholder="Filtrar por nombre..." style="font-size: 13px;">
-                        </div>
-                    </div>
-
-                    <div id="listaMaterias" class="materias-list" style="height: calc(100vh - 550px);">
-                    </div>
-                </div>
-            </div>
-            <!-- Calendario semanal -->
-            <div class="calendar-panel" style="border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
-                <div class="calendar-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
-                    <h2 style="font-size: 20px; color: #1e293b; margin: 0;">📅 Mi Horario Semanal</h2>
-                    <button id="btnLimpiarHorario" class="btn btn-outline" style="font-size: 13px; padding: 6px 12px; color: #ef4444; border-color: #fee2e2; background: #fef2f2;">
-                        Limpiar Todo
-                    </button>
-                </div>
-
-                <div class="calendar-grid" id="calendario" style="border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">
-                    <!-- Header con días -->
-                    <div class="calendar-cell header" style="background: var(--primary-600);">Hora</div>
-                    <div class="calendar-cell header" style="background: var(--primary-600);">Lunes</div>
-                    <div class="calendar-cell header" style="background: var(--primary-600);">Martes</div>
-                    <div class="calendar-cell header" style="background: var(--primary-600);">Miércoles</div>
-                    <div class="calendar-cell header" style="background: var(--primary-600);">Jueves</div>
-                    <div class="calendar-cell header" style="background: var(--primary-600);">Viernes</div>
-                    <div class="calendar-cell header" style="background: var(--primary-600);">Sábado</div>
-                </div>
-
-                <!-- Leyenda de colores -->
-                <div class="legend" style="margin-top: 20px; padding: 16px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <h4 style="font-size: 14px; color: #64748b; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Materias Seleccionadas</h4>
-                    <div id="legendItems" class="legend-items" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        <p class="empty-message" style="font-size: 13px; color: #94a3b8; font-style: italic;">Selecciona materias del panel izquierdo para agregarlas aquí.</p>
-                    </div>
-                </div>
-
-                {% if user %}
-                <!-- Botón para guardar horario si el usuario está logueado -->
-                <div style="margin-top: 20px; padding: 20px; background: linear-gradient(to right, #f0f9ff, #e0f2fe); border-radius: 12px; display: flex; gap: 12px; align-items: center; border: 1px solid #bae6fd;">
-                    <div style="flex: 1;">
-                        <label style="display: block; font-size: 12px; font-weight: 600; color: #0369a1; margin-bottom: 4px;">NOMBRE DEL HORARIO</label>
-                        <input type="text" id="nombreHorario" class="form-control" placeholder="Ej: Horario 2025-A Final" style="border-color: #7dd3fc;">
-                    </div>
-                    <button id="btnGuardarHorario" class="btn btn-primary" style="height: 42px; margin-top: 18px; padding: 0 24px; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);">
-                        💾 Guardar en mi cuenta
-                    </button>
-                </div>
-                {% else %}
-                <!-- Mensaje para usuarios no autenticados -->
-                <div style="margin-top: 24px; padding: 20px; background: #fffbeb; border-radius: 12px; text-align: center; border: 1px solid #fcd34d;">
-                    <p style="color: #92400e; margin: 0; font-size: 15px; font-weight: 500;">
-                        ¿Te gusta cómo quedó tu horario?
-                    </p>
-                    <div style="margin-top: 12px;">
-                        <a href="/login" class="btn btn-primary" style="font-size: 14px; background: #d97706;">Iniciar sesión para guardar</a>
-                    </div>
-                    <p style="margin-top: 8px; font-size: 12px; color: #b45309;">
-                        O <a href="/signup" style="color: #b45309; text-decoration: underline; font-weight: 600;">crea una cuenta gratis</a></p>
-                </div>
-                {% endif %}
-            </div>
+            <!-- Opción 3: Beneficios UDG -->
+            <a href="https://beneficios.diferente.page/" target="_blank" class="feature-card">
+                <div class="feature-icon"><i class="fas fa-gift" style="color: #f59e0b;"></i></div>
+                <h3>Beneficios UDG</h3>
+                <p>Descubre todos los descuentos, convenios y beneficios que tienes por ser estudiante de la UDG.</p>
+                <span class="btn-feature">Ver Beneficios</span>
+            </a>
         </div>
-    </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=5"></script>
+        <footer style="text-align: center; padding: 40px; color: #94a3b8; font-size: 0.9rem;">
+            &copy; 2025 Planificador UDG - Proyecto estudiantil.
+        </footer>
+    </div>
 </body>
 </html>

@@ -308,9 +308,11 @@ header h1 {
 .calendar-grid {
     display: grid;
     grid-template-columns: 80px repeat(6, 1fr);
-    gap: 1px;
-    background: #ddd;
-    border: 1px solid #ddd;
+    background: white;
+    border-top: 1px solid #cbd5e1;
+    border-left: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .calendar-cell {
@@ -318,23 +320,30 @@ header h1 {
     padding: 0;
     height: 60px;
     position: relative;
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
 }
 
 .calendar-cell.header {
-    background: linear-gradient(90deg, var(--primary-500), var(--accent-600));
+    background: var(--primary-600);
     color: white;
     font-weight: 700;
     text-align: center;
     padding: 12px 8px;
+    height: auto;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .calendar-cell.time {
     font-weight: 600;
-    color: #666;
+    color: #475569;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0f0f0;
+    background: #f8fafc;
     font-size: 12px;
 }
 
@@ -351,6 +360,8 @@ header h1 {
     transition: filter 0.3s, z-index 0.3s;
     color: white;
     z-index: 1;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .pro-badge {
@@ -1190,8 +1201,9 @@ header h1 {
         min-width: auto !important; /* Override existing min-width */
         width: 100%;
         grid-template-columns: 25px repeat(6, minmax(0, 1fr)) !important; /* Force columns to fit, smaller time col */
-        gap: 1px;
-        padding: 2px;
+        gap: 0;
+        padding: 0;
+        background: white;
     }
     
     .calendar-cell.header {
@@ -1296,9 +1308,9 @@ header h1 {
 .horario-grid {
   display: grid;
   grid-template-columns: 80px repeat(6, 1fr);
-  gap: 1px;
-  background: #e6e9ef;
-  border: 2px solid #e6e9ef;
+  background: white;
+  border-top: 1px solid #e6e9ef;
+  border-left: 1px solid #e6e9ef;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 20px;
@@ -1756,5 +1768,107 @@ header h1 {
 
 .clase-aula {
     opacity: 0.8;
+}
+
+/* --- RESPONSIVE DESIGN --- */
+
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .left-panel {
+        position: static;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        border-radius: 0;
+    }
+
+    header.main-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .header-brand {
+        flex-direction: column;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .user-menu {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .user-menu .btn {
+        width: 100%;
+    }
+
+    .calendar-panel {
+        overflow-x: auto;
+    }
+
+    .calendar-grid {
+        min-width: 800px; /* Asegura que el calendario sea legible con scroll */
+    }
+
+    .auth-container {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    /* Ajustes para el Dashboard */
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .schedule-card {
+        margin-bottom: 15px;
+    }
+
+    /* Ajustes para el detalle del horario */
+    .schedule-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .schedule-actions-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.3rem;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+
+    .star-rating label {
+        font-size: 24px;
+    }
 }
 

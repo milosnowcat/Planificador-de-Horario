@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profesores - Planificador UDG</title>
+    <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .prof-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+            gap: 10px;
+        }
+        @media (max-width: 600px) {
+            .prof-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .prof-card button {
+                width: 100%;
+            }
+        }
+        .prof-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 1.2rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .star-rating input { display: none; }
+        .star-rating label {
+            font-size: 30px;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+        .star-rating :checked ~ label { color: #fbbf24; }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label { color: #f59e0b; }
+        
+        .comment-item {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 10px 0;
+        }
+        .comment-meta {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="header-brand">
+                <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+                <div>
+                    <h1 class="header-title">Planificador UDG</h1>
+                    <p class="subtitle">Encuentra y califica a tus docentes</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-home"></i> Inicio</a>
+                <a href="/planner" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-calendar-alt"></i> Planificador</a>
+                <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
+                {% if user %}
+                <a href="/dashboard" class="btn btn-primary btn-sm">Mi Dashboard</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="search-panel">
+                    <h2>Buscar Profesores</h2>
+                    <div class="form-group">
+                        <label>Centro Universitario</label>
+                        <select id="centro" class="form-control">
+                            {% for code, name in centros.items() %}
+                            <option value="{{ code }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Carrera (Opcional)</label>
+                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO">
+                    </div>
+                    <div class="form-group">
+                        <label>Ciclo</label>
+                        <select id="ciclo" class="form-control">
+                            <option value="202610">2026-A</option>
+                            <option value="202520">2025-B</option>
+                            <option value="202510">2025-A</option>
+                        </select>
+                    </div>
+                    <button id="btnBuscar" class="btn btn-primary" style="width: 100%;">Buscar Profesores</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div id="resultsHeader" style="margin-bottom: 20px; display: none;">
+                    <h2 id="resultsTitle">Profesores encontrados</h2>
+                    <input type="text" id="filterProf" class="form-control" placeholder="Filtrar por nombre..." style="margin-top: 10px;">
+                </div>
+                <div id="profList">
+                    <div style="text-align: center; padding: 50px; color: #94a3b8;">
+                        <p>Usa el panel de la izquierda para buscar profesores por centro y carrera.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para calificar -->
+    <div id="rateModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalProfName">Calificar a: </h3>
+            <div class="star-rating">
+                <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+                <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+            </div>
+            <textarea id="comment" class="form-control" placeholder="Escribe tu opinión (opcional)..." style="min-height: 100px; margin-bottom: 15px;"></textarea>
+            
+            <div id="successMsg" style="display: none; background: #dcfce7; color: #166534; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: 600;">
+                ✅ ¡Calificación guardada con éxito!
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button id="btnSaveRating" class="btn btn-primary" style="flex: 1;">Guardar Calificación</button>
+                <button onclick="closeModal()" class="btn btn-outline">Cancelar</button>
+            </div>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
+            <h4>Calificaciones recientes</h4>
+            <div id="recentRatings" style="max-height: 200px; overflow-y: auto;">
+                <p style="color: #94a3b8; font-size: 0.9rem;">Cargando opiniones...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allProfessors = [];
+        let selectedProf = '';
+
+        document.getElementById('btnBuscar').addEventListener('click', async () => {
+            const btn = document.getElementById('btnBuscar');
+            btn.disabled = true;
+            btn.innerText = 'Buscando...';
+            
+            const data = {
+                centro: document.getElementById('centro').value,
+                carrera: document.getElementById('carrera').value,
+                ciclo: document.getElementById('ciclo').value
+            };
+
+            try {
+                const res = await fetch('/api/buscar_profesores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    allProfessors = result.profesores;
+                    renderProfessors(allProfessors);
+                    document.getElementById('resultsHeader').style.display = 'block';
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error de conexión');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Buscar Profesores';
+            }
+        });
+
+        function renderProfessors(list) {
+            const container = document.getElementById('profList');
+            if (list.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 20px;">No se encontraron profesores.</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(p => `
+                <div class="prof-card">
+                    <div style="flex: 1;">
+                        <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 4px;">${p.nombre}</h3>
+                        <p style="font-size: 0.85rem; color: #64748b; line-height: 1.4;">
+                            <i class="fas fa-book" style="font-size: 0.75rem; margin-right: 4px;"></i>
+                            ${p.materias.join(', ')}
+                        </p>
+                    </div>
+                    <button onclick="openRateModal('${p.nombre}')" class="btn btn-primary btn-sm">Calificar / Ver</button>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('filterProf').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allProfessors.filter(p => 
+                p.nombre.toLowerCase().includes(term) || 
+                p.materias.some(m => m.toLowerCase().includes(term))
+            );
+            renderProfessors(filtered);
+        });
+
+        async function openRateModal(name) {
+            selectedProf = name;
+            document.getElementById('modalProfName').innerText = 'Calificar a: ' + name;
+            document.getElementById('rateModal').style.display = 'flex';
+            document.getElementById('successMsg').style.display = 'none'; // Ocultar mensaje previo
+            
+            const commentArea = document.getElementById('comment');
+            commentArea.value = '';
+            commentArea.disabled = false; // Asegurar que esté habilitado
+            
+            document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
+            
+            // Cargar calificaciones existentes
+            loadRatings(name);
+        }
+
+        async function loadRatings(name) {
+            const container = document.getElementById('recentRatings');
+            container.innerHTML = '<p>Cargando...</p>';
+            
+            try {
+                const res = await fetch('/api/professor_ratings/' + encodeURIComponent(name));
+                const result = await res.json();
+                
+                if (result.success && result.ratings.length > 0) {
+                    container.innerHTML = result.ratings.map(r => `
+                        <div class="comment-item">
+                            <div class="comment-meta">
+                                <span class="rating-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+                                • ${new Date(r.created_at).toLocaleDateString()}
+                            </div>
+                            <p style="font-size: 0.9rem;">${r.comment || 'Sin comentario'}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="color: #94a3b8;">Aún no hay calificaciones para este profesor.</p>';
+                }
+            } catch (e) {
+                container.innerHTML = '<p>Error al cargar calificaciones.</p>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('rateModal').style.display = 'none';
+        }
+
+        document.getElementById('btnSaveRating').addEventListener('click', async () => {
+            const ratingInput = document.querySelector('input[name="rating"]:checked');
+            if (!ratingInput) {
+                alert('Por favor selecciona una calificación');
+                return;
+            }
+
+            const data = {
+                professor_name: selectedProf,
+                rating: ratingInput.value,
+                comment: document.getElementById('comment').value
+            };
+
+            try {
+                const res = await fetch('/api/rate_professor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    // Mostrar mensaje de éxito
+                    const msg = document.getElementById('successMsg');
+                    msg.style.display = 'block';
+                    
+                    // Limpiar campos
+                    document.getElementById('comment').value = '';
+                    document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
+                    
+                    // Recargar lista de comentarios
+                    loadRatings(selectedProf);
+                    
+                    // Ocultar mensaje después de 3 segundos
+                    setTimeout(() => {
+                        msg.style.display = 'none';
+                    }, 3000);
+                } else {
+                    alert('Error: ' + result.error);
+                    if (result.auth_error) {
+                        window.location.href = '/login';
+                    }
+                }
+            } catch (e) {
+                alert('Error al guardar');
+            }
+        });
+    </script>
+</body>
+</html>

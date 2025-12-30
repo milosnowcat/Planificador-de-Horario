@@ -364,13 +364,33 @@ function actualizarLeyenda() {
 
 // Limpiar horario
 document.getElementById('btnLimpiarHorario').addEventListener('click', () => {
-    if (confirm('¿Estás seguro de que deseas limpiar todo el horario?')) {
-        materiasAgregadas = [];
-        colorIndex = 0;
-        renderizarHorario();
-        actualizarLeyenda();
-        mostrarMaterias(materiasCargadas);
-    }
+    Swal.fire({
+        title: '¿Limpiar todo el horario?',
+        text: "Se eliminarán todas las materias que has agregado hasta ahora.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, limpiar todo',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            materiasAgregadas = [];
+            colorIndex = 0;
+            renderizarHorario();
+            actualizarLeyenda();
+            mostrarMaterias(materiasCargadas);
+            
+            Swal.fire({
+                title: '¡Limpiado!',
+                text: 'Tu horario está vacío de nuevo.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    });
 });
 
 // Guardar horario a la base de datos

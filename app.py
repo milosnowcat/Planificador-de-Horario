@@ -27,6 +27,8 @@ from supabase_client import (
     supabase_delete_schedule_items,
     supabase_reset_password_email,
     supabase_update_user_password,
+    supabase_get_professor_ratings,
+    supabase_add_professor_rating,
 )
 
 app = Flask(__name__)
@@ -243,11 +245,29 @@ def fetch_all_pages(session, post_url, payload_base):
 
 @app.route('/')
 def index():
-    """Página principal con el calendario."""
+    """Página de inicio (Landing Page)."""
     user = None
     if session.get('user'):
         user = session['user']
-    return render_template('index.html', centros=CENTROS, user=user)
+    return render_template('index.html', user=user)
+
+@app.route('/planner')
+def planner():
+    """Página del planificador de horarios."""
+    user = None
+    is_pro = False
+    if session.get('user'):
+        user = session['user']
+        if session.get('access_token'):
+            profile = supabase_get_profile(session['access_token'], user['id'])
+            is_pro = profile.get('is_pro', False) if profile else False
+            
+    return render_template('planner.html', centros=CENTROS, user=user, is_pro=is_pro)
+
+@app.route('/beneficios')
+def beneficios():
+    """Redirige a la página externa de beneficios UDG."""
+    return redirect("https://beneficios.diferente.page/")
 
 
 @app.route('/login')
@@ -622,6 +642,126 @@ def pricing():
         profile = supabase_get_profile(session['access_token'], user['id'])
         is_pro = profile.get('is_pro', False) if profile else False
     return render_template('pricing.html', user=user, is_pro=is_pro)
+
+@app.route('/professors')
+def professors_view():
+    """Página para calificar profesores."""
+    user = None
+    is_pro = False
+    if session.get('user'):
+        user = session['user']
+        if session.get('access_token'):
+            profile = supabase_get_profile(session['access_token'], user['id'])
+            is_pro = profile.get('is_pro', False) if profile else False
+            
+    return render_template('professors.html', centros=CENTROS, user=user, is_pro=is_pro)
+
+@app.route('/api/buscar_profesores', methods=['POST'])
+def buscar_profesores():
+    """API para buscar profesores únicos."""
+    try:
+        data = request.json
+        centro = data.get('centro', '')
+        carrera = data.get('carrera', '')
+        ciclo = data.get('ciclo', '')
+
+        payload = {
+            "ciclop": ciclo,
+            "cup": centro,
+            "majrp": carrera,
+            "crsep": "",
+            "materiap": "",
+            "horaip": "",
+            "horafp": "",
+            "edifp": "",
+            "aulap": "",
+            "ordenp": "0",
+            "mostrarp": "500",
+            "dispp": "1",
+        }
+
+        with requests.Session() as s:
+            s.headers.update(HEADERS)
+            s.cookies.update(COOKIES)
+            materias = fetch_all_pages(s, POST_URL, payload)
+
+        # Extraer profesores únicos y sus materias
+        profesores_dict = {}
+        for m in materias:
+            prof = m.get('Profesor', '').strip()
+            materia_nombre = m.get('Materia', '').strip()
+            if prof and prof != '.' and prof != 'POR ASIGNAR':
+                if prof not in profesores_dict:
+                    profesores_dict[prof] = set()
+                if materia_nombre:
+                    profesores_dict[prof].add(materia_nombre)
+        
+        # Convertir a lista de objetos para el frontend
+        profesores_lista = []
+        for name in sorted(profesores_dict.keys()):
+            profesores_lista.append({
+                'nombre': name,
+                'materias': sorted(list(profesores_dict[name]))
+            })
+
+        return jsonify({
+            'success': True,
+            'profesores': profesores_lista,
+            'total': len(profesores_lista)
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/rate_professor', methods=['POST'])
+def rate_professor():
+    """API para calificar a un profesor."""
+    if not session.get('access_token'):
+        return jsonify({'success': False, 'error': 'No autenticado'}), 401
+    
+    try:
+        data = request.json
+        prof_name = data.get('professor_name')
+        rating = data.get('rating')
+        comment = data.get('comment', '')
+        
+        if not prof_name or not rating:
+            return jsonify({'success': False, 'error': 'Datos incompletos'}), 400
+            
+        res, error_msg = supabase_add_professor_rating(
+            session['access_token'],
+            session['user']['id'],
+            prof_name,
+            int(rating),
+            comment
+        )
+        
+        if res:
+            return jsonify({'success': True, 'data': res})
+        else:
+            # Manejar token expirado o errores de tabla
+            error_str = str(error_msg)
+            if "JWT expired" in error_str:
+                return jsonify({'success': False, 'error': 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.', 'auth_error': True}), 401
+            
+            if "relation" in error_str and "does not exist" in error_str:
+                error_msg = "La tabla 'professor_ratings' no existe en Supabase. Por favor ejecuta el SQL proporcionado."
+            
+            return jsonify({'success': False, 'error': error_msg}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/professor_ratings/<path:name>')
+def get_professor_ratings(name):
+    """API para obtener calificaciones de un profesor."""
+    try:
+        ratings, error = supabase_get_professor_ratings(name)
+        if error:
+             return jsonify({'success': False, 'error': error}), 500
+        return jsonify({'success': True, 'ratings': ratings})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/logout')
 def logout():

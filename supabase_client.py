@@ -380,6 +380,69 @@ def supabase_delete_schedule(access_token, schedule_id):
         print('supabase_delete_schedule exception:', str(e))
         return False
 
+def supabase_get_professor_ratings(professor_name):
+    """Get all ratings for a specific professor."""
+    if not SUPABASE_URL:
+        return [], "Falta SUPABASE_URL"
+    # Use RPC or direct query. Direct query is easier if table exists.
+    url = f"{SUPABASE_URL}/rest/v1/professor_ratings?professor_name=eq.{professor_name}&select=*"
+    headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+    }
+    try:
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.ok:
+            return r.json(), None
+        
+        error_detail = r.text
+        try:
+            error_json = r.json()
+            error_detail = error_json.get('message', r.text)
+        except:
+            pass
+            
+        print('supabase_get_professor_ratings error:', r.status_code, error_detail)
+        return [], error_detail
+    except Exception as e:
+        print('supabase_get_professor_ratings exception:', str(e))
+        return [], str(e)
+
+
+def supabase_add_professor_rating(access_token, user_id, professor_name, rating, comment):
+    """Add a rating for a professor."""
+    if not SUPABASE_URL:
+        return None, "Falta SUPABASE_URL"
+    url = f"{SUPABASE_URL}/rest/v1/professor_ratings"
+    headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    }
+    body = {
+        "user_id": user_id,
+        "professor_name": professor_name,
+        "rating": rating,
+        "comment": comment
+    }
+    try:
+        r = requests.post(url, json=body, headers=headers, timeout=10)
+        if r.ok:
+            return r.json(), None
+        
+        error_detail = r.text
+        try:
+            error_json = r.json()
+            error_detail = error_json.get('message', r.text)
+        except:
+            pass
+            
+        print('supabase_add_professor_rating error:', r.status_code, error_detail)
+        return None, error_detail
+    except Exception as e:
+        print('supabase_add_professor_rating exception:', str(e))
+        return None, str(e)
 
 def supabase_update_schedule(access_token, schedule_id, name=None, color=None, notes=None, metadata=None):
     """Update schedule properties (name, color, notes, metadata)."""
