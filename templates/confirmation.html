@@ -8,20 +8,20 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <div class="container" style="max-width:980px;margin:60px auto;padding:0;">
-    <div style="display:grid;grid-template-columns:1fr 420px;gap:0;align-items:stretch;">
-      <div style="padding:40px;background:linear-gradient(180deg,#f7f9ff,#eef4ff);display:flex;flex-direction:column;justify-content:center;gap:18px;">
-        <h1 style="font-size:28px;color:var(--primary-600);">¡Email confirmado!</h1>
-        <p style="color:var(--muted);max-width:520px;">Tu cuenta ha sido verificada exitosamente. Ahora puedes acceder a todos los features de la aplicación.</p>
-        <div style="display:flex;gap:12px;align-items:center;">
+  <div class="container confirmation-container">
+    <div class="confirmation-grid">
+      <div class="confirmation-left">
+        <h1>¡Email confirmado!</h1>
+        <p>Tu cuenta ha sido verificada exitosamente. Ahora puedes acceder a todos los features de la aplicación.</p>
+        <div class="auth-info-badge">
           <div class="pro-badge">Beta</div>
           <div style="color:var(--muted);font-size:14px;">Aplicación estudiante — hecha para UDG</div>
         </div>
       </div>
 
-      <div style="padding:28px;background:var(--surface);border-left:1px solid #f1f5f9;">
+      <div class="confirmation-right">
         <div style="text-align: center; margin-bottom: 20px;">
-          <div style="width: 60px; height: 60px; background: var(--success); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <div class="success-icon-wrapper">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M20 6L9 17L4 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>

@@ -11,9 +11,9 @@
   <div class="container" style="background: transparent; box-shadow: none; padding: 0;">
     <div class="auth-layout">
       <div class="auth-left">
-        <h1 style="font-size:28px;color:var(--primary-600);">Bienvenido</h1>
-        <p style="color:var(--muted);max-width:520px;">Crea tu cuenta para empezar a guardar múltiples horarios, exportar a PDF y sincronizar entre dispositivos.</p>
-        <div style="display:flex;gap:12px;align-items:center;">
+        <h1>Bienvenido</h1>
+        <p>Crea tu cuenta para empezar a guardar múltiples horarios, exportar a PDF y sincronizar entre dispositivos.</p>
+        <div class="auth-info-badge">
           <div class="pro-badge">Pro features</div>
           <div style="color:var(--muted);font-size:14px;">Exportar PDF · Sincronización · Sin anuncios</div>
         </div>
@@ -23,8 +23,8 @@
       </div>
 
       <div class="auth-right">
-        <h2 style="margin-bottom:6px;">Crear cuenta</h2>
-        <p style="color:var(--muted);margin-bottom:14px;">Regístrate con tu correo institucional para guardar horarios.</p>
+        <h2>Crear cuenta</h2>
+        <p>Regístrate con tu correo institucional para guardar horarios.</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -36,11 +36,11 @@
           {% endif %}
         {% endwith %}
 
-        <form action="/auth/register" method="post" style="display:grid;gap:10px;">
-          <label style="font-size:13px;color:var(--muted)">Correo</label>
+        <form class="auth-form" action="/auth/register" method="post">
+          <label>Correo</label>
           <input class="form-control" type="email" name="email" placeholder="tu@correo.edu.mx" required>
 
-          <label style="font-size:13px;color:var(--muted)">Contraseña</label>
+          <label>Contraseña</label>
           <input class="form-control" type="password" name="password" placeholder="Crear contraseña" required>
 
           <button class="btn btn-primary" type="submit">Crear cuenta</button>

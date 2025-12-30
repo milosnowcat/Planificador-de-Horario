@@ -29,37 +29,37 @@
       </div>
     </header>
 
-    <div style="padding: 40px; max-width: 1200px; margin: 0 auto;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px;">
+    <div class="pricing-container">
+      <div class="pricing-grid">
         
         <!-- Plan Gratis -->
-        <div style="background: var(--surface); padding: 28px; border-radius: 12px; border: 2px solid #e6e9ef; display: flex; flex-direction: column;">
-          <h2 style="color: var(--primary-600); margin-bottom: 8px;">Plan Gratis</h2>
-          <div style="font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">$0<span style="font-size: 14px; color: var(--muted);">/mes</span></div>
+        <div class="pricing-card">
+          <h2>Plan Gratis</h2>
+          <div class="pricing-price">$0<span>/mes</span></div>
           <p style="color: var(--muted); margin-bottom: 24px;">Perfecto para comenzar</p>
           
-          <ul style="flex: 1; margin-bottom: 24px; list-style: none;">
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+          <ul class="pricing-features">
+            <li>
+              <span class="check">✓</span>
               <span>1 horario</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+            <li>
+              <span class="check">✓</span>
               <span>Búsqueda de materias</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+            <li>
+              <span class="check">✓</span>
               <span>Sincronización básica</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px; opacity: 0.5;">
+            <li class="cross">
               <span>✗</span>
               <span>Exportar a PDF</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px; opacity: 0.5;">
+            <li class="cross">
               <span>✗</span>
               <span>Compartir horarios</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px; opacity: 0.5;">
+            <li class="cross">
               <span>✗</span>
               <span>Soporte prioritario</span>
             </li>
@@ -73,36 +73,36 @@
         </div>
         
         <!-- Plan Pro -->
-        <div style="background: linear-gradient(180deg, #f0f4ff, #f7f0ff); padding: 28px; border-radius: 12px; border: 2px solid var(--primary-600); position: relative; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);">
-          <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary-600); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">RECOMENDADO</div>
+        <div class="pricing-card pro">
+          <div class="recommended-badge">RECOMENDADO</div>
           
-          <h2 style="color: var(--primary-600); margin-bottom: 8px; margin-top: 8px;">Plan Pro</h2>
-          <div style="font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">$4.99<span style="font-size: 14px; color: var(--muted);">/mes</span></div>
+          <h2 style="margin-top: 8px;">Plan Pro</h2>
+          <div class="pricing-price">$4.99<span>/mes</span></div>
           <p style="color: var(--muted); margin-bottom: 24px;">Todo lo que necesitas</p>
           
-          <ul style="flex: 1; margin-bottom: 24px; list-style: none;">
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+          <ul class="pricing-features">
+            <li>
+              <span class="check">✓</span>
               <span>Horarios ilimitados</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+            <li>
+              <span class="check">✓</span>
               <span>Búsqueda de materias</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+            <li>
+              <span class="check">✓</span>
               <span>Sincronización completa</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+            <li>
+              <span class="check">✓</span>
               <span>Exportar a PDF</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+            <li>
+              <span class="check">✓</span>
               <span>Compartir horarios</span>
             </li>
-            <li style="padding: 8px 0; display: flex; gap: 8px;">
-              <span style="color: var(--success);">✓</span>
+            <li>
+              <span class="check">✓</span>
               <span>Soporte prioritario</span>
             </li>
           </ul>
