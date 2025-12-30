@@ -76,7 +76,15 @@
                 <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
                 {% if user %}
                 <div class="user-menu">
-                    <span class="user-email">Hola, {{ user.email }}</span>
+                    <span class="user-email">Hola, 
+                        {% if profile and profile.full_name %}
+                            {{ profile.full_name }}
+                        {% elif user.user_metadata and user.user_metadata.full_name %}
+                            {{ user.user_metadata.full_name }}
+                        {% else %}
+                            {{ user.email }}
+                        {% endif %}
+                    </span>
                     <a href="/dashboard" class="btn btn-primary btn-sm">Mi Dashboard</a>
                     <a href="/logout" class="btn btn-outline btn-sm">Salir</a>
                 </div>

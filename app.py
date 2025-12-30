@@ -247,14 +247,18 @@ def fetch_all_pages(session, post_url, payload_base):
 def index():
     """Página de inicio (Landing Page)."""
     user = None
+    profile = None
     if session.get('user'):
         user = session['user']
-    return render_template('index.html', user=user)
+        if session.get('access_token'):
+            profile = supabase_get_profile(session['access_token'], user['id'])
+    return render_template('index.html', user=user, profile=profile)
 
 @app.route('/planner')
 def planner():
     """Página del planificador de horarios."""
     user = None
+    profile = None
     is_pro = False
     if session.get('user'):
         user = session['user']
@@ -262,7 +266,7 @@ def planner():
             profile = supabase_get_profile(session['access_token'], user['id'])
             is_pro = profile.get('is_pro', False) if profile else False
             
-    return render_template('planner.html', centros=CENTROS, user=user, is_pro=is_pro)
+    return render_template('planner.html', centros=CENTROS, user=user, profile=profile, is_pro=is_pro)
 
 @app.route('/beneficios')
 def beneficios():
@@ -302,10 +306,18 @@ def auth_register():
     data = request.form
     email = data.get('email')
     password = data.get('password')
+    confirm_password = data.get('confirm_password')
+    full_name = data.get('full_name')
+    
     if not email or not password:
         flash('Email y contraseña requeridos', 'error')
-        return redirect(url_for('login_view'))
-    res = supabase_sign_up(email, password)
+        return redirect(url_for('signup_view'))
+        
+    if password != confirm_password:
+        flash('Las contraseñas no coinciden', 'error')
+        return redirect(url_for('signup_view'))
+        
+    res = supabase_sign_up(email, password, full_name)
     if not res:
         flash('Error de conexión con el servicio de autenticación', 'error')
         return redirect(url_for('login_view'))
@@ -338,12 +350,21 @@ def auth_register():
     user_id = user.get('id') if user else None
     # Intentar crear profile en la base de datos usando Service Role (backend)
     if user_id:
+        import time
+        # Pequeña espera para asegurar que Supabase Auth haya propagado el usuario
+        time.sleep(1) 
         try:
-            prof = supabase_create_profile_service(user_id, email)
+            prof = supabase_create_profile_service(user_id, email, full_name)
             if prof:
                 app.logger.info('Profile creado para %s', user_id)
             else:
-                app.logger.warning('No se creó profile para %s', user_id)
+                # Reintento si falló (posible race condition)
+                time.sleep(2)
+                prof = supabase_create_profile_service(user_id, email, full_name)
+                if prof:
+                    app.logger.info('Profile creado para %s en el segundo intento', user_id)
+                else:
+                    app.logger.warning('No se pudo crear el profile para %s tras reintento', user_id)
         except Exception as e:
             app.logger.exception('Error al crear profile: %s', e)
 
@@ -489,6 +510,7 @@ def dashboard():
     return render_template('dashboard.html', 
                          schedules=schedules, 
                          user=user,
+                         profile=profile,
                          is_pro=is_pro,
                          can_create_more=can_create_more,
                          schedule_count=len(schedules),
@@ -510,9 +532,11 @@ def create_schedule():
     # Si no existe perfil, intentar crearlo (fix para error de FK)
     if not profile:
         print(f"Profile not found for user {user_id}, attempting to create one...")
-        email = session.get('user', {}).get('email')
+        user_data = session.get('user', {})
+        email = user_data.get('email')
+        full_name = user_data.get('user_metadata', {}).get('full_name')
         if email:
-            profile = supabase_create_profile_service(user_id, email)
+            profile = supabase_create_profile_service(user_id, email, full_name)
             if profile:
                 print("Profile created successfully")
             else:

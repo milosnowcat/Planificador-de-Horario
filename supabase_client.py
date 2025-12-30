@@ -29,12 +29,14 @@ def supabase_sign_in(email, password):
         return None
 
 
-def supabase_sign_up(email, password):
+def supabase_sign_up(email, password, full_name=None):
     """Register a user via Supabase auth (returns user info if success)."""
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
         return None
     url = f"{SUPABASE_URL}/auth/v1/signup"
     payload = {"email": email, "password": password}
+    if full_name:
+        payload["data"] = {"full_name": full_name}
     try:
         r = requests.post(url, json=payload, headers=headers_base, timeout=10)
         if r.ok:
@@ -310,6 +312,9 @@ def supabase_create_profile_service(user_id, email, full_name=None):
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
     }
+    # Usamos upsert para evitar errores si el perfil ya existe (por un trigger)
+    headers['Prefer'] = 'return=representation,resolution=merge-duplicates'
+    
     body = {
         'id': user_id,
         'email': email,
@@ -326,11 +331,9 @@ def supabase_create_profile_service(user_id, email, full_name=None):
             if isinstance(result, list) and len(result) > 0:
                 return result[0]
             return result
+        
         print('supabase_create_profile_service error:', r.status_code, r.text)
-        try:
-            return r.json()
-        except:
-            return None
+        return None
     except Exception as e:
         print('supabase_create_profile_service exception:', str(e))
         import traceback

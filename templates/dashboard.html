@@ -24,7 +24,13 @@
         <div>
           <h1 class="header-title">Planificador UDG</h1>
           <div class="subtitle">
-            {{ user.email }}
+            {% if profile and profile.full_name %}
+              {{ profile.full_name }}
+            {% elif user.user_metadata and user.user_metadata.full_name %}
+              {{ user.user_metadata.full_name }}
+            {% else %}
+              {{ user.email }}
+            {% endif %}
             {% if is_pro %}<span class="pro-badge">PRO</span>{% endif %}
           </div>
         </div>
