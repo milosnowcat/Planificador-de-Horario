@@ -29,6 +29,7 @@ from supabase_client import (
     supabase_update_user_password,
     supabase_get_professor_ratings,
     supabase_add_professor_rating,
+    supabase_get_all_professor_averages,
 )
 
 app = Flask(__name__)
@@ -720,12 +721,18 @@ def buscar_profesores():
                 if materia_nombre:
                     profesores_dict[prof].add(materia_nombre)
         
+        # Obtener promedios de calificaciones
+        ratings_averages, _ = supabase_get_all_professor_averages()
+
         # Convertir a lista de objetos para el frontend
         profesores_lista = []
         for name in sorted(profesores_dict.keys()):
+            rating_data = ratings_averages.get(name, {'average': 0, 'count': 0})
             profesores_lista.append({
                 'nombre': name,
-                'materias': sorted(list(profesores_dict[name]))
+                'materias': sorted(list(profesores_dict[name])),
+                'rating_average': rating_data['average'],
+                'rating_count': rating_data['count']
             })
 
         return jsonify({

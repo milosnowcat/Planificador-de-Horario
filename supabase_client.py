@@ -447,6 +447,42 @@ def supabase_add_professor_rating(access_token, user_id, professor_name, rating,
         print('supabase_add_professor_rating exception:', str(e))
         return None, str(e)
 
+def supabase_get_all_professor_averages():
+    """Get all ratings and calculate average and count per professor."""
+    if not SUPABASE_URL:
+        return {}, "Falta SUPABASE_URL"
+    
+    url = f"{SUPABASE_URL}/rest/v1/professor_ratings?select=professor_name,rating"
+    headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+    }
+    try:
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.ok:
+            ratings = r.json()
+            averages = {}
+            for r_entry in ratings:
+                name = r_entry['professor_name']
+                rating = r_entry['rating']
+                if name not in averages:
+                    averages[name] = {'total_rating': 0, 'count': 0}
+                averages[name]['total_rating'] += rating
+                averages[name]['count'] += 1
+            
+            # Formatear para facilitar uso
+            result = {}
+            for name, stats in averages.items():
+                result[name] = {
+                    'average': round(stats['total_rating'] / stats['count'], 1),
+                    'count': stats['count']
+                }
+            return result, None
+        
+        return {}, r.text
+    except Exception as e:
+        return {}, str(e)
+
 def supabase_update_schedule(access_token, schedule_id, name=None, color=None, notes=None, metadata=None):
     """Update schedule properties (name, color, notes, metadata)."""
     if not SUPABASE_URL:
