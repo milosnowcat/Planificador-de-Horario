@@ -413,22 +413,30 @@ def supabase_get_professor_ratings(professor_name):
 
 
 def supabase_add_professor_rating(access_token, user_id, professor_name, rating, comment):
-    """Add a rating for a professor."""
+    """Add a rating for a professor. Allows anonymous ratings if access_token/user_id are None."""
     if not SUPABASE_URL:
         return None, "Falta SUPABASE_URL"
+    
     url = f"{SUPABASE_URL}/rest/v1/professor_ratings"
+    
+    # Si hay token usamos el token del usuario (RLS)
+    # Si no hay, usamos el service key si está disponible (bypassa RLS) o la anon key
+    auth_header = f'Bearer {access_token}' if access_token else f'Bearer {SUPABASE_SERVICE_KEY}' if SUPABASE_SERVICE_KEY else f'Bearer {SUPABASE_ANON_KEY}'
+    
     headers = {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': f'Bearer {access_token}',
+        'apikey': SUPABASE_SERVICE_KEY if (not access_token and SUPABASE_SERVICE_KEY) else SUPABASE_ANON_KEY,
+        'Authorization': auth_header,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
     }
+    
     body = {
         "user_id": user_id,
         "professor_name": professor_name,
         "rating": rating,
         "comment": comment
     }
+    
     try:
         r = requests.post(url, json=body, headers=headers, timeout=10)
         if r.ok:

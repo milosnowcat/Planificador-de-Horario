@@ -746,10 +746,7 @@ def buscar_profesores():
 
 @app.route('/api/rate_professor', methods=['POST'])
 def rate_professor():
-    """API para calificar a un profesor."""
-    if not session.get('access_token'):
-        return jsonify({'success': False, 'error': 'No autenticado'}), 401
-    
+    """API para calificar a un profesor. Ahora permite calificaciones anónimas."""
     try:
         data = request.json
         prof_name = data.get('professor_name')
@@ -759,9 +756,13 @@ def rate_professor():
         if not prof_name or not rating:
             return jsonify({'success': False, 'error': 'Datos incompletos'}), 400
             
+        # Intentar obtener info del usuario si está logueado
+        access_token = session.get('access_token')
+        user_id = session.get('user', {}).get('id') if session.get('user') else None
+
         res, error_msg = supabase_add_professor_rating(
-            session['access_token'],
-            session['user']['id'],
+            access_token,
+            user_id,
             prof_name,
             int(rating),
             comment
