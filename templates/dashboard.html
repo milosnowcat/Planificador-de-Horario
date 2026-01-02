@@ -7,6 +7,7 @@
   <title>Dashboard - Planificador UDG</title>
   <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -101,8 +102,9 @@
               </div>
 
               <div class="schedule-menu">
-                <button
-                  onclick="showEditForm('{{ s.id }}', '{{ s.name }}', '{{ s.color or '#e6e9ef' }}', '{{ s.notes or '' }}')">Editar</button>
+                <button class="btn-edit-schedule" data-schedule-id="{{ s.id }}" data-schedule-name="{{ s.name }}"
+                  data-schedule-color="{{ s.color or '#e6e9ef' }}"
+                  data-schedule-notes="{{ s.notes or '' }}">Editar</button>
                 <form id="delete-form-{{ s.id }}" action="/schedules/{{ s.id }}/delete" method="post"
                   style="margin: 0;">
                   <button type="button" onclick="confirmDelete('{{ s.id }}')" class="delete-btn">Eliminar</button>
@@ -204,6 +206,17 @@
     // Cerrar modal al hacer click fuera
     document.getElementById('editModal').addEventListener('click', (e) => {
       if (e.target.id === 'editModal') closeEditModal();
+    });
+
+    // Event listeners para botones de editar
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('btn-edit-schedule')) {
+        const scheduleId = e.target.dataset.scheduleId;
+        const name = e.target.dataset.scheduleName;
+        const color = e.target.dataset.scheduleColor;
+        const notes = e.target.dataset.scheduleNotes;
+        showEditForm(scheduleId, name, color, notes);
+      }
     });
   </script>
 </body>

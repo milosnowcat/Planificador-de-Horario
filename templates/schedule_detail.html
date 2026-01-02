@@ -204,7 +204,7 @@
     const scheduleColor = '{{ schedule.color or "#e6e9ef" }}';
     const scheduleNotes = `{{ schedule.notes or "" }}`;
     const scheduleData = {{ (schedule.metadata if schedule.metadata else { }) | tojson }};
-    const scheduleItems = {{ schedule_items | tojson if schedule_items else "[]" }};
+    const scheduleItems = {{ schedule_items | tojson if schedule_items else '[]' }};
 
     // Debug: Log schedule data
     console.log('Full schedule object:', {{ schedule | tojson }});
