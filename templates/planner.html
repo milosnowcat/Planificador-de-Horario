@@ -1,212 +1,195 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planificador - Avanzadas UDG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <title>Planificador - Planificador UDG</title>
     <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+
+    <!-- Fonts and Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <script>
-      // Supabase Auth Hash Handler (Cleaner AJAX version)
-      (function() {
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          const hash = window.location.hash.substring(1);
-          const params = new URLSearchParams(hash);
-          const data = {
-            access_token: params.get('access_token'),
-            refresh_token: params.get('refresh_token'),
-            type: params.get('type'),
-            expires_in: params.get('expires_in'),
-            error: params.get('error'),
-            error_description: params.get('error_description')
-          };
+        // Supabase Auth Hash Handler
+        (function () {
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+                const hash = window.location.hash.substring(1);
+                const params = new URLSearchParams(hash);
+                const data = {
+                    access_token: params.get('access_token'),
+                    refresh_token: params.get('refresh_token'),
+                    type: params.get('type'),
+                    expires_in: params.get('expires_in'),
+                    error: params.get('error'),
+                    error_description: params.get('error_description')
+                };
 
-          if (data.access_token || data.error) {
-            // Clear hash immediately to clean up URL
-            history.replaceState(null, null, ' ');
-
-            // Send to server via POST
-            fetch('/auth/callback', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-              if (result.redirect) {
-                window.location.href = result.redirect;
-              } else if (result.error) {
-                console.error('Auth error:', result.error);
-                alert('Error de autenticación: ' + result.error);
-              }
-            })
-            .catch(err => {
-              console.error('Fetch error:', err);
-            });
-          }
-        }
-      })();
+                if (data.access_token || data.error) {
+                    history.replaceState(null, null, ' ');
+                    fetch('/auth/callback', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.redirect) {
+                                window.location.href = result.redirect;
+                            } else if (result.error) {
+                                console.error('Auth error:', result.error);
+                            }
+                        });
+                }
+            }
+        })();
     </script>
 </head>
+
 <body>
     <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-messages planner-flash-messages">
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-              {% endfor %}
+        <header>
+            <div class="header-content">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h1>Planificador UDG</h1>
+                </a>
+                <p class="subtitle">By students, for students</p>
             </div>
-          {% endif %}
-        {% endwith %}
-        <header class="main-header">
-            <div class="header-brand">
-                <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
-                <div>
-                    <h1 class="header-title">Planificador UDG</h1>
-                    <p class="subtitle">Diseña tu semestre ideal</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <a href="/" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-home"></i> Inicio</a>
-                <a href="/professors" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-chalkboard-teacher"></i> Profesores</a>
-                <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
+            <nav class="header-nav">
+                <a href="/planner" class="nav-link active">Horarios</a>
+                <a href="/professors" class="nav-link">Profesores</a>
                 {% if user %}
-                <div class="user-menu">
-                    <span class="user-email">Hola, 
-                        {% if profile and profile.full_name %}
-                            {{ profile.full_name }}
-                        {% elif user.user_metadata and user.user_metadata.full_name %}
-                            {{ user.user_metadata.full_name }}
-                        {% else %}
-                            {{ user.email }}
-                        {% endif %}
-                    </span>
-                    <a href="/dashboard" class="btn btn-primary btn-sm">Mi Dashboard</a>
-                    <a href="/logout" class="btn btn-outline btn-sm">Salir</a>
+                <div class="user-info">
+                    <a href="/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
+                    <a href="/logout" class="btn btn-outline btn-sm">Cerrar Sesión</a>
                 </div>
                 {% else %}
                 <div class="auth-buttons">
-                    <a href="/signup" class="btn btn-secondary btn-sm">Crear Cuenta</a>
-                    <a href="/login" class="btn btn-primary btn-sm">Iniciar Sesión</a>
+                    <a href="/login" class="btn btn-outline btn-sm">Entrar</a>
+                    <a href="/signup" class="btn btn-primary btn-sm">Crear Cuenta</a>
                 </div>
                 {% endif %}
-            </div>
+            </nav>
         </header>
 
-        <div class="main-content">
-            <div class="left-panel">
-                <!-- Panel de búsqueda -->
-                <div class="search-panel planner-search-panel">
-                    <h2 class="planner-search-title">🔍 Buscar Materias</h2>
-                    
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <main class="main-content">
+            <aside class="left-panel">
+                <div class="search-panel">
+                    <h2>🔍 Buscar Materias</h2>
                     <div class="form-group">
-                        <label for="ciclo" class="planner-label">Ciclo Escolar</label>
-                        <select id="ciclo" class="form-control planner-select">
+                        <label for="ciclo">Ciclo Escolar</label>
+                        <select id="ciclo" class="form-control">
                             <option value="202610">2026-A</option>
                             <option value="202520">2025-B</option>
-                            <option value="202510">2025-A</option>                            
+                            <option value="202510">2025-A</option>
                         </select>
                     </div>
-
                     <div class="form-group">
-                        <label for="centro" class="planner-label">Centro Universitario</label>
-                        <select id="centro" class="form-control planner-select">
+                        <label for="centro">Centro Universitario</label>
+                        <select id="centro" class="form-control">
                             <option value="">Selecciona un centro...</option>
                             {% for codigo, nombre in centros.items() %}
                             <option value="{{ codigo }}">{{ nombre }}</option>
                             {% endfor %}
                         </select>
                     </div>
-
                     <div class="form-group">
-                        <label for="carrera" class="planner-label">Carrera (Opcional)</label>
-                        <input type="text" id="carrera" class="form-control planner-input" placeholder="Ej: INCO, IINF...">
+                        <label for="carrera">Carrera (Opcional)</label>
+                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO, IINF">
                     </div>
-
-                    <button id="btnBuscar" class="btn btn-primary planner-btn-buscar">
-                        <span>Buscar Materias</span>
+                    <button id="btnBuscar" class="btn btn-primary" style="width: 100%;">
+                        Buscar Materias
                     </button>
 
-                    <div id="loading" class="loading planner-loading">
-                        <div class="spinner planner-spinner"></div>
-                        <p class="planner-loading-text">Consultando SIIAU...</p>
+                    <div id="loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Consultando SIIAU...</p>
                     </div>
                 </div>
 
-                <!-- Lista de materias encontradas -->
-                <div id="materiasContainer" class="materias-container planner-materias-container"> 
-                    <div class="materias-header planner-materias-header">
-                        <h3 class="planner-results-title">Resultados (<span id="totalMaterias">0</span>)</h3>
-                        <div class="search-box planner-filter-box">
-                            <input type="text" id="filtroMaterias" class="form-control planner-filter-input" placeholder="Filtrar por nombre...">
+                <div id="materiasContainer" class="materias-container" style="display: none;">
+                    <div class="materias-header">
+                        <h3>Resultados (<span id="totalMaterias">0</span>)</h3>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="filtroMaterias" class="form-control" placeholder="Filtrar por nombre...">
+                    </div>
+                    <div id="listaMaterias" class="materias-list"></div>
+                </div>
+            </aside>
+
+            <section class="right-panel">
+                <div class="calendar-panel">
+                    <div class="calendar-header">
+                        <h2>📅 Mi Horario</h2>
+                        <button id="btnLimpiarHorario" class="btn btn-outline" style="color: var(--danger);">
+                            Limpiar Todo
+                        </button>
+                    </div>
+
+                    <div class="calendar-grid" id="calendario">
+                        <div class="calendar-cell header">Hora</div>
+                        <div class="calendar-cell header">Lun</div>
+                        <div class="calendar-cell header">Mar</div>
+                        <div class="calendar-cell header">Mie</div>
+                        <div class="calendar-cell header">Jue</div>
+                        <div class="calendar-cell header">Vie</div>
+                        <div class="calendar-cell header">Sab</div>
+                    </div>
+
+                    <div id="legendItems" class="planner-legend">
+                        <p class="planner-empty-message">Selecciona materias del panel izquierdo.</p>
+                    </div>
+
+                    {% if user %}
+                    <div class="planner-save-container">
+                        <div style="flex: 1;">
+                            <label class="planner-save-label">Nombre del horario</label>
+                            <input type="text" id="nombreHorario" class="form-control planner-save-input"
+                                placeholder="Ej: Semestre 2026-A">
                         </div>
+                        <button id="btnGuardarHorario" class="btn btn-primary planner-btn-guardar">
+                            <i class="fas fa-save"></i> Guardar Horario
+                        </button>
                     </div>
+                    {% else %}
+                    <div class="planner-auth-promo">
+                        <p class="planner-auth-promo-text">¿Quieres guardar tu horario? <a href="/login">Inicia
+                                sesión</a> o <a href="/signup">crea
+                                una cuenta</a> gratis.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+    </div>
+    </main>
 
-                    <div id="listaMaterias" class="materias-list planner-materias-list">
-                    </div>
-                </div>
-            </div>
-            <!-- Calendario semanal -->
-            <div class="calendar-panel planner-calendar-panel">
-                <div class="calendar-header planner-calendar-header">
-                    <h2 class="planner-calendar-title">📅 Mi Horario Semanal</h2>
-                    <button id="btnLimpiarHorario" class="btn btn-outline planner-btn-limpiar">
-                        Limpiar Todo
-                    </button>
-                </div>
-
-                <div class="calendar-grid" id="calendario">
-                    <!-- Header con días -->
-                    <div class="calendar-cell header">Hora</div>
-                    <div class="calendar-cell header">Lunes</div>
-                    <div class="calendar-cell header">Martes</div>
-                    <div class="calendar-cell header">Miércoles</div>
-                    <div class="calendar-cell header">Jueves</div>
-                    <div class="calendar-cell header">Viernes</div>
-                    <div class="calendar-cell header">Sábado</div>
-                </div>
-
-                <!-- Leyenda de colores -->
-                <div class="legend planner-legend">
-                    <h4 class="planner-legend-title">Materias Seleccionadas</h4>
-                    <div id="legendItems" class="legend-items planner-legend-items">
-                        <p class="empty-message planner-empty-message">Selecciona materias del panel izquierdo para agregarlas aquí.</p>
-                    </div>
-                </div>
-
-                {% if user %}
-                <!-- Botón para guardar horario si el usuario está logueado -->
-                <div class="planner-save-container">
-                    <div style="flex: 1;">
-                        <label class="planner-save-label">NOMBRE DEL HORARIO</label>
-                        <input type="text" id="nombreHorario" class="form-control planner-save-input" placeholder="Ej: Horario 2025-A Final">
-                    </div>
-                    <button id="btnGuardarHorario" class="btn btn-primary planner-btn-guardar">
-                        💾 Guardar en mi cuenta
-                    </button>
-                </div>
-                {% else %}
-                <!-- Mensaje para usuarios no autenticados -->
-                <div class="planner-auth-promo">
-                    <p class="planner-auth-promo-text">
-                        ¿Te gusta cómo quedó tu horario?
-                    </p>
-                    <div style="margin-top: 12px;">
-                        <a href="/login" class="btn btn-primary planner-auth-promo-btn">Iniciar sesión para guardar</a>
-                    </div>
-                    <p class="planner-auth-promo-footer">
-                        O <a href="/signup" style="color: #b45309; text-decoration: underline; font-weight: 600;">crea una cuenta gratis</a></p>
-                </div>
-                {% endif %}
-            </div>
+    <footer class="l-footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 Planificador UDG. Diseña tu futuro.</p>
         </div>
+    </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=5"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=6"></script>
 </body>
+
 </html>

@@ -255,6 +255,15 @@ def index():
             profile = supabase_get_profile(session['access_token'], user['id'])
     return render_template('index.html', user=user, profile=profile)
 
+@app.route('/feedback')
+def feedback():
+    """Página de sugerencias."""
+    user = session.get('user')
+    profile = None
+    if user and session.get('access_token'):
+        profile = supabase_get_profile(session['access_token'], user['id'])
+    return render_template('feedback.html', user=user, profile=profile)
+
 @app.route('/planner')
 def planner():
     """Página del planificador de horarios."""

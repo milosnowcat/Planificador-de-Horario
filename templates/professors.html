@@ -3,42 +3,62 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title>Profesores - Planificador UDG</title>
     <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+
+    <!-- Fonts and Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
     <div class="container">
-        <header class="main-header">
-            <div class="header-brand">
-                <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
-                <div>
-                    <h1 class="header-title">Planificador UDG</h1>
-                    <p class="subtitle">Encuentra y califica a tus docentes</p>
-                </div>
+        <header>
+            <div class="header-content">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h1>Planificador UDG</h1>
+                </a>
+                <p class="subtitle">By students, for students</p>
             </div>
-            <div class="header-actions">
-                <a href="/" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-home"></i>
-                    Inicio</a>
-                <a href="/planner" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i
-                        class="fas fa-calendar-alt"></i> Planificador</a>
-                <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm"
-                    style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
+            <nav class="header-nav">
+                <a href="/planner" class="nav-link">Horarios</a>
+                <a href="/professors" class="nav-link active">Profesores</a>
                 {% if user %}
-                <a href="/dashboard" class="btn btn-primary btn-sm">Mi Dashboard</a>
+                <div class="user-info">
+                    <a href="/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
+                    <a href="/logout" class="btn btn-outline btn-sm">Cerrar Sesión</a>
+                </div>
+                {% else %}
+                <div class="auth-buttons">
+                    <a href="/login" class="btn btn-outline btn-sm">Entrar</a>
+                    <a href="/signup" class="btn btn-primary btn-sm">Crear Cuenta</a>
+                </div>
                 {% endif %}
-            </div>
+            </nav>
         </header>
 
-        <div class="main-content">
-            <div class="left-panel">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <main class="main-content">
+            <aside class="left-panel">
                 <div class="search-panel">
                     <h2>Buscar Profesores</h2>
                     <div class="form-group">
-                        <label>Centro Universitario</label>
+                        <label for="centro">Centro Universitario</label>
                         <select id="centro" class="form-control">
                             {% for code, name in centros.items() %}
                             <option value="{{ code }}">{{ name }}</option>
@@ -46,84 +66,111 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Carrera (Opcional)</label>
-                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO">
+                        <label for="carrera">Carrera (Opcional)</label>
+                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO, IINF">
                     </div>
                     <div class="form-group">
-                        <label>Ciclo</label>
+                        <label for="ciclo">Ciclo</label>
                         <select id="ciclo" class="form-control">
                             <option value="202610">2026-A</option>
                             <option value="202520">2025-B</option>
                             <option value="202510">2025-A</option>
                         </select>
                     </div>
-                    <button id="btnBuscar" class="btn btn-primary" style="width: 100%;">Buscar Profesores</button>
+                    <button id="btnBuscar" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-search"></i> Buscar Ahora
+                    </button>
+                    <div id="loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Buscando profesores...</p>
+                    </div>
                 </div>
-            </div>
+            </aside>
 
-            <div class="right-panel">
-                <div id="resultsHeader" style="margin-bottom: 20px; display: none;">
-                    <h2 id="resultsTitle">Profesores encontrados</h2>
-                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                        <input type="text" id="filterProf" class="form-control" placeholder="Filtrar por nombre..."
-                            style="flex: 2; min-width: 200px;">
-                        <select id="sortProf" class="form-control" style="flex: 1; min-width: 150px;">
-                            <option value="name">Nombre (A-Z)</option>
-                            <option value="rating_desc">Mejor calificados</option>
-                            <option value="rating_asc">Peor calificados</option>
+            <section class="right-panel">
+                <div id="resultsHeader" class="results-header" style="display: none;">
+                    <h2 id="resultsTitle">Resultados</h2>
+                    <div class="results-filters">
+                        <input type="text" id="filterProf" class="form-control" placeholder="Filtrar por nombre...">
+                        <select id="sortProf" class="form-control">
+                            <option value="name">Dato (A-Z)</option>
+                            <option value="rating_desc">Mejor Calificados</option>
+                            <option value="rating_asc">Menos Calificados</option>
                         </select>
                     </div>
                 </div>
-                <div id="profList">
-                    <div style="text-align: center; padding: 50px; color: #94a3b8;">
-                        <p>Usa el panel de la izquierda para buscar profesores por centro y carrera.</p>
+                <div id="profList" class="prof-grid">
+                    <!-- Los resultados se cargarán aquí -->
+                    <div class="empty-state">
+                        <i class="fas fa-user-tie"></i>
+                        <p>Usa el panel lateral para descubrir las evaluaciones de tus profesores.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="l-footer">
+            <div class="footer-bottom">
+                <p>&copy; 2026 Planificador UDG. La opinión de los estudiantes cuenta.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Premium -->
+    <div id="rateModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass" style="max-width: 600px;">
+            <div class="modal-header-p">
+                <h3 id="modalProfName">Calificar a:</h3>
+                <button onclick="closeModal()" class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="modal-body-p">
+                <div class="rating-selector">
+                    <p>¿Qué calificación le das?</p>
+                    <div class="star-rating-p">
+                        <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 24px;">
+                    <label>Tu opinión (opcional)</label>
+                    <textarea id="comment" class="l-input" rows="4"
+                        placeholder="Comparte tu experiencia con este profesor..."></textarea>
+                </div>
+
+                <div id="successMsg" class="alert-success" style="display: none;">
+                    ✅ ¡Calificación guardada con éxito!
+                </div>
+
+                <div class="modal-actions-p">
+                    <button id="btnSaveRating" class="l-btn l-btn-primary" style="flex: 1;">Publicar Opinión</button>
+                    <button onclick="closeModal()" class="l-btn l-btn-text">Cerrar</button>
+                </div>
+
+                <div class="ratings-section">
+                    <h4>Opiniones Recientes</h4>
+                    <div id="recentRatings" class="ratings-list">
+                        <p class="empty-message-p">Cargando opiniones...</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal para calificar -->
-    <div id="rateModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
-            <h3 id="modalProfName">Calificar a: </h3>
-            <div class="star-rating">
-                <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
-                <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
-                <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
-                <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
-                <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
-            </div>
-            <textarea id="comment" class="form-control" placeholder="Escribe tu opinión (opcional)..."
-                style="min-height: 100px; margin-bottom: 15px;"></textarea>
-
-            <div id="successMsg"
-                style="display: none; background: #dcfce7; color: #166534; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: 600;">
-                ✅ ¡Calificación guardada con éxito!
-            </div>
-
-            <div style="display: flex; gap: 10px;">
-                <button id="btnSaveRating" class="btn btn-primary" style="flex: 1;">Guardar Calificación</button>
-                <button onclick="closeModal()" class="btn btn-outline">Cerrar</button>
-            </div>
-
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
-            <h4>Calificaciones recientes</h4>
-            <div id="recentRatings" style="max-height: 200px; overflow-y: auto;">
-                <p style="color: #94a3b8; font-size: 0.9rem;">Cargando opiniones...</p>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let allProfessors = [];
         let selectedProf = '';
 
         document.getElementById('btnBuscar').addEventListener('click', async () => {
             const btn = document.getElementById('btnBuscar');
+            const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerText = 'Buscando...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Buscando...';
 
             const data = {
                 centro: document.getElementById('centro').value,
@@ -144,60 +191,54 @@
                     renderProfessors(allProfessors);
                     document.getElementById('resultsHeader').style.display = 'block';
                 } else {
-                    alert('Error: ' + result.error);
+                    Swal.fire('Error', result.error, 'error');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Error de conexión');
+                Swal.fire('Error', 'Error de conexión', 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerText = 'Buscar Profesores';
+                btn.innerHTML = originalText;
             }
         });
 
         function renderProfessors(list) {
             const container = document.getElementById('profList');
             if (list.length === 0) {
-                container.innerHTML = '<p style="text-align: center; padding: 20px;">No se encontraron profesores.</p>';
+                container.innerHTML = '<div class="empty-state"><p>No se encontraron profesores.</p></div>';
                 return;
             }
 
             container.innerHTML = list.map(p => {
                 const hasRating = p.rating_count > 0;
-                const stars = hasRating
-                    ? '★'.repeat(Math.round(p.rating_average)) + '☆'.repeat(5 - Math.round(p.rating_average))
-                    : '☆☆☆☆☆';
+                const roundedRating = Math.round(p.rating_average);
+                const stars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
 
                 return `
-                <div class="prof-card">
-                    <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-                            <h3 style="font-size: 1.1rem; color: #1e293b; margin: 0;">${p.nombre}</h3>
-                            <div style="text-align: right;">
-                                <div style="color: #f59e0b; font-size: 0.9rem;">${stars}</div>
-                                <div style="font-size: 0.75rem; color: #64748b;">
-                                    ${hasRating ? `${p.rating_average} (${p.rating_count} opiniones)` : 'Sin calificaciones'}
-                                </div>
+                <div class="prof-card animate-in">
+                    <div class="card-info">
+                        <div class="prof-header-meta">
+                            <h3 class="prof-name">${p.nombre}</h3>
+                            <div class="rating-badge ${hasRating ? 'active' : ''}">
+                                <span class="stars">${stars}</span>
+                                <span class="count">${hasRating ? p.rating_average + ' (' + p.rating_count + ')' : 'S/C'}</span>
                             </div>
                         </div>
-                        <p style="font-size: 0.85rem; color: #64748b; line-height: 1.4;">
-                            <i class="fas fa-book" style="font-size: 0.75rem; margin-right: 4px;"></i>
-                            ${p.materias.join(', ')}
-                        </p>
+                        <div class="prof-materias">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>${p.materias.join(', ')}</span>
+                        </div>
                     </div>
-                    <button onclick="openRateModal('${p.nombre}')" class="btn btn-primary btn-sm" style="margin-left: 15px;">Calificar / Ver</button>
+                    <button onclick="openRateModal('${p.nombre}')" class="btn btn-outline btn-sm card-btn">
+                        Ver Detalles
+                    </button>
                 </div>
                 `;
             }).join('');
         }
 
-        document.getElementById('filterProf').addEventListener('input', () => {
-            applyFiltersAndSort();
-        });
-
-        document.getElementById('sortProf').addEventListener('change', () => {
-            applyFiltersAndSort();
-        });
+        document.getElementById('filterProf').addEventListener('input', applyFiltersAndSort);
+        document.getElementById('sortProf').addEventListener('change', applyFiltersAndSort);
 
         function applyFiltersAndSort() {
             const term = document.getElementById('filterProf').value.toLowerCase();
@@ -208,14 +249,12 @@
                 p.materias.some(m => m.toLowerCase().includes(term))
             );
 
-            // Aplicar ordenamiento
             if (sortBy === 'name') {
                 filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
             } else if (sortBy === 'rating_desc') {
                 filtered.sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0) || (b.rating_count - a.rating_count));
             } else if (sortBy === 'rating_asc') {
                 filtered.sort((a, b) => {
-                    // Si no tiene calif, lo mandamos al final
                     const aVal = a.rating_count > 0 ? a.rating_average : 999;
                     const bVal = b.rating_count > 0 ? b.rating_average : 999;
                     return aVal - bVal || (a.rating_count - b.rating_count);
@@ -227,23 +266,20 @@
 
         async function openRateModal(name) {
             selectedProf = name;
-            document.getElementById('modalProfName').innerText = 'Calificar a: ' + name;
+            document.getElementById('modalProfName').innerText = 'Opiniones de: ' + name;
             document.getElementById('rateModal').style.display = 'flex';
-            document.getElementById('successMsg').style.display = 'none'; // Ocultar mensaje previo
+            document.getElementById('successMsg').style.display = 'none';
 
             const commentArea = document.getElementById('comment');
             commentArea.value = '';
-            commentArea.disabled = false; // Asegurar que esté habilitado
-
             document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
 
-            // Cargar calificaciones existentes
             loadRatings(name);
         }
 
         async function loadRatings(name) {
             const container = document.getElementById('recentRatings');
-            container.innerHTML = '<p>Cargando...</p>';
+            container.innerHTML = '<div class="loading-p"><i class="fas fa-circle-notch fa-spin"></i> Cargando...</div>';
 
             try {
                 const res = await fetch('/api/professor_ratings/' + encodeURIComponent(name));
@@ -251,19 +287,19 @@
 
                 if (result.success && result.ratings.length > 0) {
                     container.innerHTML = result.ratings.map(r => `
-                        <div class="comment-item">
-                            <div class="comment-meta">
-                                <span class="rating-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
-                                • ${new Date(r.created_at).toLocaleDateString()}
+                        <div class="feedback-item">
+                            <div class="feedback-meta">
+                                <span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+                                <span class="date">${new Date(r.created_at).toLocaleDateString()}</span>
                             </div>
-                            <p style="font-size: 0.9rem;">${r.comment || 'Sin comentario'}</p>
+                            <p class="feedback-text">${r.comment || 'Sólo calificación'}</p>
                         </div>
                     `).join('');
                 } else {
-                    container.innerHTML = '<p style="color: #94a3b8;">Aún no hay calificaciones para este profesor.</p>';
+                    container.innerHTML = '<p class="empty-message-p">Aún no hay opiniones para este profesor.</p>';
                 }
             } catch (e) {
-                container.innerHTML = '<p>Error al cargar calificaciones.</p>';
+                container.innerHTML = '<p class="error-p">Error al cargar opiniones.</p>';
             }
         }
 
@@ -274,7 +310,7 @@
         document.getElementById('btnSaveRating').addEventListener('click', async () => {
             const ratingInput = document.querySelector('input[name="rating"]:checked');
             if (!ratingInput) {
-                alert('Por favor selecciona una calificación');
+                Swal.fire('Info', 'Por favor selecciona una calificación', 'info');
                 return;
             }
 
@@ -293,26 +329,17 @@
                 const result = await res.json();
 
                 if (result.success) {
-                    // Mostrar mensaje de éxito
                     const msg = document.getElementById('successMsg');
                     msg.style.display = 'block';
-
-                    // Limpiar campos
                     document.getElementById('comment').value = '';
                     document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
-
-                    // Recargar lista de comentarios
                     loadRatings(selectedProf);
-
-                    // Ocultar mensaje después de 3 segundos
-                    setTimeout(() => {
-                        msg.style.display = 'none';
-                    }, 3000);
+                    setTimeout(() => { msg.style.display = 'none'; }, 3000);
                 } else {
-                    alert('Error: ' + result.error);
+                    Swal.fire('Error', result.error, 'error');
                 }
             } catch (e) {
-                alert('Error al guardar');
+                Swal.fire('Error', 'Error al guardar', 'error');
             }
         });
     </script>

@@ -2,9 +2,13 @@
 let materiasCargadas = [];
 let materiasAgregadas = [];
 const colores = [
-    '#667eea', '#764ba2', '#f093fb', '#4facfe',
-    '#43e97b', '#fa709a', '#fee140', '#30cfd0',
-    '#a8edea', '#fed6e3', '#c471f5', '#12c2e9'
+    '#667eea', '#4facfe', '#fdcb6e',
+    '#43e97b', '#fa709a', '#30cfd0',
+    '#a8edea', '#fed6e3', '#c471f5',
+    '#ff7675', '#fd79a8', '#ff9f43',
+    '#e17055', '#00b894', '#0984e3',
+    '#6c5ce7', '#00cec9', '#636e72',
+
 ];
 let colorIndex = 0;
 
@@ -22,14 +26,14 @@ let diasMap = {
 // Inicializar el calendario
 function inicializarCalendario() {
     const calendario = document.getElementById('calendario');
-    
+
     horas.forEach((hora, index) => {
         // Celda de hora
         const celdaHora = document.createElement('div');
         celdaHora.className = 'calendar-cell time';
         celdaHora.textContent = hora;
         calendario.appendChild(celdaHora);
-        
+
         // Celdas para cada día
         for (let dia = 0; dia < 6; dia++) {
             const celda = document.createElement('div');
@@ -46,18 +50,18 @@ document.getElementById('btnBuscar').addEventListener('click', async () => {
     const ciclo = document.getElementById('ciclo').value;
     const centro = document.getElementById('centro').value;
     const carrera = document.getElementById('carrera').value;
-    
+
     if (!centro) {
         alert('Por favor selecciona un centro universitario');
         return;
     }
-    
+
     const loading = document.getElementById('loading');
     const btnBuscar = document.getElementById('btnBuscar');
-    
+
     loading.style.display = 'block';
     btnBuscar.disabled = true;
-    
+
     try {
         const response = await fetch('/api/buscar_materias', {
             method: 'POST',
@@ -66,9 +70,9 @@ document.getElementById('btnBuscar').addEventListener('click', async () => {
             },
             body: JSON.stringify({ ciclo, centro, carrera })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             materiasCargadas = data.materias;
             mostrarMaterias(materiasCargadas);
@@ -88,7 +92,7 @@ document.getElementById('btnBuscar').addEventListener('click', async () => {
 function mostrarMaterias(materias) {
     const lista = document.getElementById('listaMaterias');
     lista.innerHTML = '';
-    
+
     // Agrupar por materia
     const materiasAgrupadas = {};
     materias.forEach(materia => {
@@ -108,26 +112,26 @@ function mostrarMaterias(materias) {
             });
         }
     });
-    
+
     // Actualizar el total con las materias agrupadas
     document.getElementById('totalMaterias').textContent = Object.keys(materiasAgrupadas).length;
-    
+
     Object.values(materiasAgrupadas).forEach(materia => {
         const item = document.createElement('div');
         item.className = 'materia-item';
         item.dataset.nrc = materia.NRC;
-        
+
         // Verificar si ya está agregada
         const yaAgregada = materiasAgregadas.some(m => m.NRC === materia.NRC);
         if (yaAgregada) {
             item.classList.add('agregada');
         }
-        
+
         let horariosHtml = '';
         materia.horarios.forEach((h, idx) => {
             horariosHtml += `<div class="materia-horario">📅 ${h.dias} ${h.horas} - ${h.edificio} ${h.aula}</div>`;
         });
-        
+
         item.innerHTML = `
             <div class="materia-nombre">${materia.Materia}</div>
             <div class="materia-info">Clave: ${materia.Clave} | NRC: ${materia.NRC} | Sección: ${materia.Sec}</div>
@@ -135,11 +139,11 @@ function mostrarMaterias(materias) {
             <div class="materia-info">Créditos: ${materia.CR} | Disponibles: ${materia.DIS}</div>
             ${horariosHtml}
         `;
-        
+
         if (!yaAgregada) {
             item.addEventListener('click', () => agregarMateriaAlHorario(materia));
         }
-        
+
         lista.appendChild(item);
     });
 }
@@ -147,7 +151,7 @@ function mostrarMaterias(materias) {
 // Filtrar materias
 document.getElementById('filtroMaterias').addEventListener('input', (e) => {
     const filtro = e.target.value.toLowerCase();
-    const materiasFiltradas = materiasCargadas.filter(m => 
+    const materiasFiltradas = materiasCargadas.filter(m =>
         m.Materia.toLowerCase().includes(filtro) ||
         m.Profesor.toLowerCase().includes(filtro) ||
         m.NRC.includes(filtro) ||
@@ -164,14 +168,14 @@ function agregarMateriaAlHorario(materia) {
         mostrarErrorConflicto(materia, conflicto);
         return;
     }
-    
+
     // Asignar color
     const color = colores[colorIndex % colores.length];
     colorIndex++;
-    
+
     materia.color = color;
     materiasAgregadas.push(materia);
-    
+
     // Actualizar vista
     renderizarHorario();
     actualizarLeyenda();
@@ -238,16 +242,16 @@ function hayTraslape(h1, h2) {
     // Verificar si comparten días
     const dias1 = parseDias(h1.dias);
     const dias2 = parseDias(h2.dias);
-    
+
     const diasComunes = dias1.filter(d => dias2.includes(d));
     if (diasComunes.length === 0) return false;
-    
+
     // Verificar si las horas se traslapan
     const [inicio1, fin1] = parseHoras(h1.horas);
     const [inicio2, fin2] = parseHoras(h2.horas);
-    
+
     if (!inicio1 || !inicio2) return false;
-    
+
     return (inicio1 < fin2) && (fin1 > inicio2);
 }
 
@@ -256,26 +260,26 @@ function parseDias(diasStr) {
     const dias = [];
     const partes = diasStr.split(' ');
     const letras = ['L', 'M', 'I', 'J', 'V', 'S'];
-    
+
     partes.forEach((parte, idx) => {
         if (parte !== '.' && letras[idx]) {
             dias.push(diasMap[letras[idx]]);
         }
     });
-    
+
     return dias;
 }
 
 // Parsear horas (ej: "0700-0800" -> [7, 8])
 function parseHoras(horasStr) {
     if (!horasStr) return [null, null];
-    
+
     const partes = horasStr.replace(/\s/g, '').split('-');
     if (partes.length !== 2) return [null, null];
-    
+
     const inicio = parseInt(partes[0]) / 100;
     const fin = parseInt(partes[1]) / 100;
-    
+
     return [inicio, fin];
 }
 
@@ -283,38 +287,38 @@ function parseHoras(horasStr) {
 function renderizarHorario() {
     // Limpiar clases existentes
     document.querySelectorAll('.clase-block').forEach(el => el.remove());
-    
+
     // Agregar cada materia
     materiasAgregadas.forEach(materia => {
         materia.horarios.forEach(horario => {
             const dias = parseDias(horario.dias);
             const [horaInicio, horaFin] = parseHoras(horario.horas);
-            
+
             if (!horaInicio || !horaFin) return;
-            
+
             dias.forEach(dia => {
                 // Calcular posición
                 const duracion = horaFin - horaInicio;
                 const inicioIndex = horaInicio - 7; // 7 es la primera hora (07:00)
-                
+
                 // Encontrar la celda correspondiente
                 const celda = document.querySelector(
                     `.calendar-cell[data-hora="${Math.floor(horaInicio)}"][data-dia="${dia}"]`
                 );
-                
+
                 if (celda) {
                     const bloque = document.createElement('div');
                     bloque.className = 'clase-block';
                     bloque.style.backgroundColor = materia.color;
                     bloque.style.height = `${duracion * 60}px`;
-                    
+
                     bloque.innerHTML = `
                         <div class="clase-nombre">${materia.Materia.substring(0, 25)}</div>
                         <div class="clase-info">${horario.horas}</div>
                         <div class="clase-info">${horario.edificio} ${horario.aula}</div>
                         <button class="clase-remove" onclick="removerMateria('${materia.NRC}')">×</button>
                     `;
-                    
+
                     celda.appendChild(bloque);
                 }
             });
@@ -333,12 +337,12 @@ function removerMateria(nrc) {
 // Actualizar leyenda
 function actualizarLeyenda() {
     const legendItems = document.getElementById('legendItems');
-    
+
     if (materiasAgregadas.length === 0) {
         legendItems.innerHTML = '<p class="empty-message">No hay materias agregadas aún</p>';
         return;
     }
-    
+
     legendItems.innerHTML = '';
     materiasAgregadas.forEach(materia => {
         const item = document.createElement('div');
@@ -371,7 +375,7 @@ document.getElementById('btnLimpiarHorario').addEventListener('click', () => {
             renderizarHorario();
             actualizarLeyenda();
             mostrarMaterias(materiasCargadas);
-            
+
             Swal.fire({
                 title: '¡Limpiado!',
                 text: 'Tu horario está vacío de nuevo.',
@@ -394,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function guardarHorario() {
     const nombreInput = document.getElementById('nombreHorario');
     const nombre = nombreInput.value.trim() || 'Mi horario';
-    
+
     if (materiasAgregadas.length === 0) {
         alert('No hay materias en el horario. Agrega materias antes de guardar.');
         return;
@@ -411,21 +415,21 @@ function guardarHorario() {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/schedules/create';
-    
+
     const nameInput = document.createElement('input');
     nameInput.type = 'hidden';
     nameInput.name = 'name';
     nameInput.value = nombre;
-    
+
     const dataInput = document.createElement('input');
     dataInput.type = 'hidden';
     dataInput.name = 'data';
     dataInput.value = JSON.stringify(horarioData);
-    
+
     form.appendChild(nameInput);
     form.appendChild(dataInput);
     document.body.appendChild(form);
-    
+
     console.log('Guardando horario:', horarioData);
     form.submit();
 }

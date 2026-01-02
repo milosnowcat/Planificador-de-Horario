@@ -67,28 +67,17 @@
 
             <div class="header-auth">
                 {% if user %}
-                <div class="user-pill glass">
-                    <span class="user-email">
-                        {% if profile and profile.full_name %}
-                        {{ profile.full_name.split(' ')[0] }}
-                        {% elif user.user_metadata and user.user_metadata.full_name %}
-                        {{ user.user_metadata.full_name.split(' ')[0] }}
-                        {% else %}
-                        Usuario
-                        {% endif %}
-                    </span>
-                    <div class="user-dropdown">
-                        <a href="/dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
-                        <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Salir</a>
-                    </div>
+                <div class="auth-group">
+                    <a href="/dashboard" class="l-btn l-btn-primary">Dashboard</a>
+                    <a href="/logout" class="l-btn l-btn-text" title="Cerrar sesión"><i
+                            class="fas fa-sign-out-alt"></i></a>
                 </div>
                 {% else %}
                 <div class="auth-group">
                     <a href="/login" class="l-btn l-btn-text">Entrar</a>
-                    <a href="/signup" class="l-btn l-btn-primary">Empezar</a>
+                    <a href="/signup" class="l-btn l-btn-primary">Crear cuenta</a>
                 </div>
                 {% endif %}
-                <button class="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
             </div>
         </header>
 
@@ -106,8 +95,8 @@
                 </div>
                 <div class="hero-visual">
                     <div class="floating-card c1 glass"><i class="fas fa-check"></i> Sin traslapes</div>
-                    <div class="floating-card c2 glass"><i class="fas fa-star"></i> 4.8 Promedio</div>
-                    <div class="floating-card c3 glass"><i class="fas fa-user-graduate"></i> +5k Usuarios</div>
+                    <div class="floating-card c2 glass"><i class="fas fa-star"></i> Facil de usar</div>
+                    <div class="floating-card c3 glass"><i class="fas fa-user-graduate"></i>Gratis</div>
                     <div class="hero-main-img">
                         <i class="fas fa-graduation-cap big-icon"></i>
                     </div>
@@ -138,8 +127,7 @@
                     <a href="https://beneficios.diferente.page/" target="_blank" class="l-card glass">
                         <div class="card-icon orange"><i class="fas fa-ticket-alt"></i></div>
                         <h3>Club de Beneficios</h3>
-                        <p>Descuentos exclusivos en comida, servicios y tecnología solo por ser parte de nuestra
-                            comunidad.</p>
+                        <p>Descuentos exclusivos en servicios y tecnología solo por ser parte de la UDG.</p>
                         <span class="card-link">Descubrir <i class="fas fa-arrow-right"></i></span>
                     </a>
                 </div>
@@ -162,7 +150,7 @@
                     <div class="link-group">
                         <p class="group-title">Comunidad</p>
                         <a href="https://beneficios.diferente.page/">Beneficios</a>
-                        <a href="#">Sugerencias</a>
+                        <a href="/feedback">Sugerencias</a>
                     </div>
                 </div>
             </div>
