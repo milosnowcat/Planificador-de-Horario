@@ -861,7 +861,7 @@ def view_schedule(schedule_id):
 
 @app.route('/schedules/<schedule_id>/download-pdf')
 def download_schedule_pdf(schedule_id):
-    """Descargar horario como PDF."""
+    """Descargar horario como PDF con calendario visual."""
     if not session.get('access_token'):
         return redirect(url_for('login_view'))
     
@@ -877,7 +877,7 @@ def download_schedule_pdf(schedule_id):
         flash('Esta función está disponible solo en Plan Pro', 'error')
         return redirect(url_for('view_schedule', schedule_id=schedule_id))
     
-    # Obtener horario
+    # Obtener horario y items
     schedules = supabase_get_schedules(access_token, user_id)
     schedule = next((s for s in schedules if str(s.get('id')) == str(schedule_id)), None)
     
@@ -885,66 +885,67 @@ def download_schedule_pdf(schedule_id):
         flash('Horario no encontrado', 'error')
         return redirect(url_for('dashboard'))
     
+    # Get schedule items from database
+    schedule_items = supabase_get_schedule_items(access_token, schedule_id)
+    
     try:
-        # Crear PDF
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter, landscape
+        
+        # Crear PDF en orientación horizontal para el calendario
         pdf_buffer = BytesIO()
-        doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+        doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(letter), 
+                              topMargin=0.5*inch, bottomMargin=0.5*inch,
+                              leftMargin=0.5*inch, rightMargin=0.5*inch)
         story = []
         styles = getSampleStyleSheet()
         
-        # Título
+        # Título principal
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
-            fontSize=24,
-            textColor=colors.HexColor('#5a67d8'),
-            spaceAfter=30,
-            alignment=1
+            fontSize=20,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=12,
+            alignment=1,
+            fontName='Helvetica-Bold'
         )
-        story.append(Paragraph(schedule.get('name', 'Mi Horario'), title_style))
-        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(f"Horario UDG: {schedule.get('name', 'Mi Horario')}", title_style))
         
-        # Información
-        info_style = ParagraphStyle(
-            'Info',
+        # Subtítulo con info
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
             parent=styles['Normal'],
-            fontSize=10,
-            textColor=colors.HexColor('#6b7280')
+            fontSize=9,
+            textColor=colors.HexColor('#64748b'),
+            alignment=1,
+            spaceAfter=20
         )
-        story.append(Paragraph(f"<b>ID:</b> {schedule.get('id')}", info_style))
+        user_name = profile.get('full_name', user.get('email', ''))
+        story.append(Paragraph(f"{user_name} • Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", subtitle_style))
         
-        created_at = schedule.get('created_at', 'N/A')
-        if created_at:
-            story.append(Paragraph(f"<b>Creado:</b> {created_at}", info_style))
+        # Preparar datos del calendario
+        schedule_data = prepare_schedule_data(schedule, schedule_items)
         
-        if schedule.get('notes'):
+        if schedule_data and 'materias' in schedule_data and schedule_data['materias']:
+            # Crear calendario de horario
+            story.append(Paragraph("Calendario de Clases", styles['Heading2']))
             story.append(Spacer(1, 0.15*inch))
-            story.append(Paragraph(f"<b>Notas:</b>", info_style))
-            story.append(Paragraph(schedule.get('notes'), info_style))
-        
-        story.append(Spacer(1, 0.3*inch))
-        story.append(Paragraph("Información General", styles['Heading2']))
-        story.append(Spacer(1, 0.1*inch))
-        
-        # Tabla con información
-        data = [['Propiedad', 'Valor']]
-        data.append(['Nombre', schedule.get('name', 'N/A')])
-        data.append(['ID', schedule.get('id', 'N/A')[:8] + '...'])
-        data.append(['Fecha de Creación', str(schedule.get('created_at', 'N/A'))[:10]])
-        data.append(['Color', schedule.get('color', '#000000')])
-        
-        table = Table(data, colWidths=[2*inch, 4*inch])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#5a67d8')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
-        ]))
-        story.append(table)
+            
+            # Crear tabla de horario
+            calendar_table = create_schedule_table(schedule_data)
+            story.append(calendar_table)
+            
+            story.append(PageBreak())
+            
+            # Sección de materias detalladas
+            story.append(Paragraph("Detalle de Materias", styles['Heading2']))
+            story.append(Spacer(1, 0.15*inch))
+            
+            courses_table = create_courses_detail_table(schedule_data)
+            story.append(courses_table)
+        else:
+            story.append(Paragraph("No hay materias registradas en este horario", subtitle_style))
         
         # Generar PDF
         doc.build(story)
@@ -954,12 +955,300 @@ def download_schedule_pdf(schedule_id):
             pdf_buffer,
             mimetype='application/pdf',
             as_attachment=True,
-            download_name=f"{schedule.get('name', 'horario').replace(' ', '_')}.pdf"
+            download_name=f"Horario_{schedule.get('name', 'UDG').replace(' ', '_')}.pdf"
         )
     except Exception as e:
+        import traceback
         print(f'Error generating PDF: {e}')
+        print(traceback.format_exc())
         flash('Error al generar PDF', 'error')
         return redirect(url_for('view_schedule', schedule_id=schedule_id))
+
+def prepare_schedule_data(schedule, schedule_items):
+    """Prepara los datos del horario para el PDF."""
+    # Paleta de colores vibrantes para diferentes materias
+    color_palette = [
+        '#ef4444', '#f97316', '#f59e0b', '#84cc16', 
+        '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6',
+        '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+        '#ec4899', '#f43f5e'
+    ]
+    
+    # PRIORITY 1: Use metadata if available (has complete data: NRC, Professor, etc)
+    metadata = schedule.get('metadata', {})
+    if metadata and 'materias' in metadata and len(metadata['materias']) > 0:
+        # Asignar colores a materias de metadata
+        materias = metadata['materias']
+        for idx, materia in enumerate(materias):
+            if 'color' not in materia or not materia['color']:
+                materia['color'] = color_palette[idx % len(color_palette)]
+        return metadata
+    
+    # PRIORITY 2: Fallback to schedule_items (only has basic data: title, day, time)
+    if schedule_items and len(schedule_items) > 0:
+        # Agrupar items por materia
+        materias_dict = {}
+        color_idx = 0
+        
+        for item in schedule_items:
+            key = item.get('course_code') or item.get('title')
+            if key not in materias_dict:
+                # Asignar color único a cada materia
+                materias_dict[key] = {
+                    'Materia': item.get('title', 'Sin nombre'),
+                    'Profesor': item.get('instructor', 'N/A'),  # Will be empty - column doesn't exist in DB
+                    'NRC': item.get('nrc', 'N/A'),  # Will be empty - column doesn't exist in DB
+                    'Clave': item.get('course_code', ''),
+                    'color': color_palette[color_idx % len(color_palette)],
+                    'horarios': []
+                }
+                color_idx += 1
+            
+            materias_dict[key]['horarios'].append({
+                'horas': f"{item.get('start_time', '')}-{item.get('end_time', '')}",
+                'dias': item.get('day', ''),
+                'edificio': item.get('building', ''),
+                'aula': item.get('room', '')  # Will be empty - column doesn't exist in DB
+            })
+        
+        return {'materias': list(materias_dict.values())}
+    
+    return {'materias': []}
+
+def create_schedule_table(schedule_data):
+    """Crea la tabla del calendario de horario."""
+    dias_nombres = ['', 'L', 'M', 'Mi', 'J', 'V', 'S']  # Nombres cortos para ahorrar espacio
+    horas_range = range(7, 22)  # 7 AM a 10 PM
+    
+    # Preparar matriz de clases por hora y día
+    grid = {}
+    for hora in horas_range:
+        grid[hora] = {dia: [] for dia in range(1, 7)}
+    
+    # Llenar grid con materias
+    for materia in schedule_data.get('materias', []):
+        for horario in materia.get('horarios', []):
+            horas_str = horario.get('horas', '')
+            dias_val = horario.get('dias', '')
+            
+            # Parsear horas
+            start_hour, end_hour = parse_hours(horas_str)
+            if start_hour is None:
+                continue
+            
+            # Parsear días
+            dias_list = parse_days(dias_val)
+            
+            for dia in dias_list:
+                for hora in range(int(start_hour), int(end_hour) + 1):
+                    if hora in grid and dia in grid[hora]:
+                        grid[hora][dia].append({
+                            'nombre': materia['Materia'],
+                            'edificio': horario.get('edificio', ''),
+                            'aula': horario.get('aula', ''),
+                            'color': materia.get('color', '#3b82f6')
+                        })
+    
+    # Construir tabla
+    data = []
+    header_row = ['Hora'] + [dias_nombres[i] for i in range(1, 7)]
+    data.append(header_row)
+    
+    for hora in horas_range:
+        row = [f"{hora}:00"]
+        for dia in range(1, 7):
+            clases = grid[hora][dia]
+            if clases:
+                # Mostrar primera clase de esa celda
+                clase = clases[0]
+                # Nombre corto para que quepa
+                nombre_corto = clase['nombre'][:18]
+                edificio = clase.get('edificio', '')
+                aula = clase.get('aula', '')
+                # Mostrar edificio + aula si ambos existen
+                location = f"{edificio} {aula}" if edificio and aula else aula
+                cell_text = f"{nombre_corto}\n{location[:10]}"
+                row.append(cell_text)
+            else:
+                row.append('')
+        data.append(row)
+    
+    # Crear tabla con dimensiones ajustadas para landscape
+    col_widths = [0.5*inch] + [1.4*inch] * 6  # Reducido para que quepa en la página
+    table = Table(data, colWidths=col_widths, rowHeights=0.3*inch)  # Altura reducida
+    
+    # Estilo base
+    table_style_commands = [
+        # Header
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Todo centrado
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        
+        # Body
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 7),  # Fuente más pequeña
+        ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#f1f5f9')),
+        
+        # Grid
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+        ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#1e40af')),
+    ]
+    
+    # Agregar colores de fondo a las celdas con clases
+    for hora_idx, hora in enumerate(horas_range):
+        for dia in range(1, 7):
+            clases = grid[hora][dia]
+            if clases:
+                clase = clases[0]
+                color_hex = clase['color']
+                try:
+                    # Convertir color hex a color más claro para fondo
+                    if color_hex.startswith('#'):
+                        bg_color = colors.HexColor(color_hex)
+                        # Aplicar color a la celda
+                        row_idx = hora_idx + 1  # +1 porque row 0 es header
+                        col_idx = dia  # dia ya es 1-6
+                        table_style_commands.append(
+                            ('BACKGROUND', (col_idx, row_idx), (col_idx, row_idx), bg_color)
+                        )
+                        # Texto blanco para mejor contraste
+                        table_style_commands.append(
+                            ('TEXTCOLOR', (col_idx, row_idx), (col_idx, row_idx), colors.whitesmoke)
+                        )
+                except:
+                    # Si falla el color, usar azul default
+                    pass
+    
+    table_style = TableStyle(table_style_commands)
+    table.setStyle(table_style)
+    return table
+
+def create_courses_detail_table(schedule_data):
+    """Crea tabla detallada de materias."""
+    from reportlab.platypus import Paragraph
+    from reportlab.lib.styles import getSampleStyleSheet
+    
+    styles = getSampleStyleSheet()
+    
+    # Estilo para el header
+    header_style = ParagraphStyle(
+        'HeaderStyle',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.whitesmoke,
+        fontName='Helvetica-Bold',
+        alignment=0  # LEFT
+    )
+    
+    # Estilo para el body
+    body_style = ParagraphStyle(
+        'BodyStyle',
+        parent=styles['Normal'],
+        fontSize=7,
+        fontName='Helvetica',
+        alignment=0,  # LEFT
+        leading=9  # Espaciado entre líneas
+    )
+    
+    # Header row con Paragraphs
+    data = [[
+        Paragraph('Materia', header_style),
+        Paragraph('NRC', header_style),
+        Paragraph('Profesor', header_style),
+        Paragraph('Día', header_style),
+        Paragraph('Horario', header_style),
+        Paragraph('Aula', header_style)
+    ]]
+    
+    for materia in schedule_data.get('materias', []):
+        for horario in materia.get('horarios', []):
+            dias_str = parse_days_to_string(horario.get('dias', ''))
+            row = [
+                Paragraph(materia.get('Materia', ''), body_style),
+                Paragraph(materia.get('NRC', ''), body_style),
+                Paragraph(materia.get('Profesor', ''), body_style),
+                Paragraph(dias_str, body_style),
+                Paragraph(horario.get('horas', ''), body_style),
+                Paragraph(f"{horario.get('edificio', '')} {horario.get('aula', '')}", body_style)
+            ]
+            data.append(row)
+    
+    # Ajustar anchos para landscape con 6 columnas (total: ~10 inches disponibles)
+    table = Table(data, colWidths=[1.8*inch, 0.7*inch, 2.2*inch, 0.6*inch, 1.1*inch, 1.0*inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+        ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#1e40af')),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    
+    return table
+
+def parse_hours(hours_str):
+    """Parsea string de horas tipo '08:00-10:00' o '0800-1000'."""
+    if not hours_str or 'null' in str(hours_str):
+        return None, None
+    
+    parts = str(hours_str).split('-')
+    if len(parts) < 2:
+        return None, None
+    
+    try:
+        start = parts[0].strip()
+        end = parts[1].strip()
+        
+        # Si tiene formato HH:MM
+        if ':' in start:
+            start_hour = int(start.split(':')[0])
+            end_hour = int(end.split(':')[0])
+        else:
+            # Formato HHMM
+            start_hour = int(start[:2]) if len(start) >= 2 else int(start)
+            end_hour = int(end[:2]) if len(end) >= 2 else int(end)
+        
+        return start_hour, end_hour
+    except:
+        return None, None
+
+def parse_days(days_val):
+    """Parsea días a lista de números (1=Lun, 2=Mar, etc)."""
+    if days_val is None:
+        return []
+    
+    # Si es número directo
+    if isinstance(days_val, int):
+        return [days_val]
+    
+    days_str = str(days_val).upper()
+    
+    # Si es solo dígitos
+    if days_str.isdigit():
+        return [int(days_str)]
+    
+    # Parsear formato de letras
+    days = []
+    if 'L' in days_str and 'M' not in days_str: days.append(1)  # Lunes solo
+    if 'M' in days_str and 'I' not in days_str and 'W' not in days_str: days.append(2)  # Martes
+    if 'I' in days_str or 'W' in days_str or ('M' in days_str and 'I' in days_str): days.append(3)  # Miércoles
+    if 'J' in days_str: days.append(4)  # Jueves
+    if 'V' in days_str: days.append(5)  # Viernes
+    if 'S' in days_str and 'V' not in days_str: days.append(6)  # Sábado
+    
+    return days
+
+def parse_days_to_string(days_val):
+    """Convierte días a string legible (L, M, Mi, J, V, S)."""
+    days_list = parse_days(days_val)
+    dias_map = {1: 'L', 2: 'M', 3: 'Mi', 4: 'J', 5: 'V', 6: 'S'}
+    return ' '.join([dias_map.get(d, '') for d in days_list])
 
 @app.route('/favicon.ico')
 def favicon():

@@ -86,13 +86,8 @@
           <div class="schedule-actions-grid">
             <button id="btnEditar" class="btn btn-primary action-btn primary" type="button">✏️ Editar</button>
 
-            {% if is_pro %}
             <a href="/schedules/{{ schedule.id }}/download-pdf" class="btn btn-outline action-btn outline">📄 Descargar
               PDF</a>
-            {% else %}
-            <button class="btn btn-outline action-btn outline disabled" type="button" disabled
-              title="Solo disponible en Plan Pro">📄 Descargar PDF</button>
-            {% endif %}
 
             {% if is_pro %}
             <button id="btnCompartir" class="btn btn-outline action-btn outline" type="button">🔗 Compartir</button>
