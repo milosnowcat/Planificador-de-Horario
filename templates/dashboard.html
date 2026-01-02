@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,16 +8,17 @@
   <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
   <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-messages" style="padding: 20px 20px 0 20px;">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
+    {% if messages %}
+    <div class="flash-messages" style="padding: 20px 20px 0 20px;">
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
     {% endwith %}
     <header class="main-header">
       <div class="header-brand">
@@ -25,11 +27,11 @@
           <h1 class="header-title">Planificador UDG</h1>
           <div class="subtitle">
             {% if profile and profile.full_name %}
-              {{ profile.full_name }}
+            {{ profile.full_name }}
             {% elif user.user_metadata and user.user_metadata.full_name %}
-              {{ user.user_metadata.full_name }}
+            {{ user.user_metadata.full_name }}
             {% else %}
-              {{ user.email }}
+            {{ user.email }}
             {% endif %}
             {% if is_pro %}<span class="pro-badge">PRO</span>{% endif %}
           </div>
@@ -37,8 +39,10 @@
       </div>
       <div class="header-actions">
         <a href="/" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-home"></i> Inicio</a>
-        <a href="/professors" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-chalkboard-teacher"></i> Profesores</a>
-        <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
+        <a href="/professors" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i
+            class="fas fa-chalkboard-teacher"></i> Profesores</a>
+        <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm"
+          style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
         <a href="/logout" class="btn btn-secondary btn-sm">Cerrar sesión</a>
       </div>
     </header>
@@ -48,17 +52,19 @@
         <h3>Acciones rápidas</h3>
         <div class="dashboard-actions">
           {% if can_create_more %}
-            <a href="/planner" class="btn btn-primary" style="text-align: center; text-decoration: none;">Crear nuevo horario</a>
+          <a href="/planner" class="btn btn-primary" style="text-align: center; text-decoration: none;">Crear nuevo
+            horario</a>
           {% else %}
-            <button class="btn" style="background: #e6e9ef; cursor: not-allowed;" disabled>
-              Límite: {{ schedule_count }}/{{ max_schedules }}
-            </button>
-            <a href="/pricing" class="btn btn-outline">Upgrade a Pro</a>
+          <button class="btn" style="background: #e6e9ef; cursor: not-allowed;" disabled>
+            Límite: {{ schedule_count }}/{{ max_schedules }}
+          </button>
+          <a href="/pricing" class="btn btn-outline">Upgrade a Pro</a>
           {% endif %}
           <a href="/" class="btn btn-outline">Volver al inicio</a>
         </div>
-        
-        <div id="createForm" style="display: none; margin-top: 20px; padding: 16px; background: #f8fafc; border-radius: 8px;">
+
+        <div id="createForm"
+          style="display: none; margin-top: 20px; padding: 16px; background: #f8fafc; border-radius: 8px;">
           <h4>Crear horario</h4>
           <form action="/schedules/create" method="post" style="display: grid; gap: 12px;">
             <input class="form-control" type="text" name="name" placeholder="Nombre del horario" required>
@@ -83,33 +89,39 @@
       <main>
         <section style="margin-bottom: 32px;">
           <h2 style="margin-bottom: 16px; color: #0f172a;">Tus horarios</h2>
-          <div id="schedulesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+          <div id="schedulesList"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
             {% if schedules %}
-              {% for s in schedules %}
-                <div class="schedule-card" style="border: 2px solid {{ s.color or '#e6e9ef' }};">
-                  <div class="schedule-card-header">
-                    <h3 style="margin: 0; color: var(--primary-600);">{{ s.name }}</h3>
-                    <button onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 20px;">⋯</button>
-                  </div>
-                  
-                  <div class="schedule-menu">
-                    <button onclick="showEditForm('{{ s.id }}', '{{ s.name }}', '{{ s.color or '#e6e9ef' }}', '{{ s.notes or '' }}')">Editar</button>
-                    <form id="delete-form-{{ s.id }}" action="/schedules/{{ s.id }}/delete" method="post" style="margin: 0;">
-                      <button type="button" onclick="confirmDelete('{{ s.id }}')" class="delete-btn">Eliminar</button>
-                    </form>
-                  </div>
-                  
-                  <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <a href="/schedules/{{ s.id }}" class="btn btn-outline" style="font-size: 12px; padding: 8px;">Ver detalles</a>
-                    <button onclick="showExportOptions('{{ s.id }}')" class="btn btn-outline" style="font-size: 12px; padding: 8px;">Exportar</button>
-                  </div>
-                </div>
-              {% endfor %}
-            {% else %}
-              <div style="text-align: center; padding: 40px; color: var(--muted); grid-column: 1/-1;">
-                <p style="font-size: 16px; margin-bottom: 8px;">No tienes horarios aún.</p>
-                <p style="font-size: 14px;">Haz clic en "Crear nuevo horario" para empezar.</p>
+            {% for s in schedules %}
+            <div class="schedule-card" style="border: 2px solid {{ s.color or '#e6e9ef' }};">
+              <div class="schedule-card-header">
+                <h3 style="margin: 0; color: var(--primary-600);">{{ s.name }}</h3>
+                <button onclick="toggleMenu(this)"
+                  style="background: none; border: none; cursor: pointer; font-size: 20px;">⋯</button>
               </div>
+
+              <div class="schedule-menu">
+                <button
+                  onclick="showEditForm('{{ s.id }}', '{{ s.name }}', '{{ s.color or '#e6e9ef' }}', '{{ s.notes or '' }}')">Editar</button>
+                <form id="delete-form-{{ s.id }}" action="/schedules/{{ s.id }}/delete" method="post"
+                  style="margin: 0;">
+                  <button type="button" onclick="confirmDelete('{{ s.id }}')" class="delete-btn">Eliminar</button>
+                </form>
+              </div>
+
+              <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <a href="/schedules/{{ s.id }}" class="btn btn-outline" style="font-size: 12px; padding: 8px;">Ver
+                  detalles</a>
+                <button onclick="showExportOptions('{{ s.id }}')" class="btn btn-outline"
+                  style="font-size: 12px; padding: 8px;">Exportar</button>
+              </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: var(--muted); grid-column: 1/-1;">
+              <p style="font-size: 16px; margin-bottom: 8px;">No tienes horarios aún.</p>
+              <p style="font-size: 14px;">Haz clic en "Crear nuevo horario" para empezar.</p>
+            </div>
             {% endif %}
           </div>
         </section>
@@ -131,7 +143,8 @@
           </div>
           <div>
             <label style="font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px;">Notas</label>
-            <textarea class="form-control" name="notes" id="editNotes" style="min-height: 80px; resize: vertical;"></textarea>
+            <textarea class="form-control" name="notes" id="editNotes"
+              style="min-height: 80px; resize: vertical;"></textarea>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <button class="btn btn-primary" type="submit">Guardar</button>
@@ -194,4 +207,5 @@
     });
   </script>
 </body>
+
 </html>

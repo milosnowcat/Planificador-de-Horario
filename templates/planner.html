@@ -13,7 +13,33 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=9">
+    <style>
+        .header-brand {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 16px !important;
+            text-align: left !important;
+        }
+
+        .header-content {
+            text-align: left !important;
+        }
+
+        .logo-wrapper {
+            position: relative;
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px;
+        }
+
+        .header-logo {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <script>
@@ -55,11 +81,22 @@
 <body>
     <div class="container">
         <header>
-            <div class="header-content">
-                <a href="/" style="text-decoration: none; color: inherit;">
-                    <h1>Planificador UDG</h1>
+            <div class="header-brand-container">
+                <a href="/" class="btn-back" title="Volver al inicio">
+                    <i class="fas fa-arrow-left"></i>
                 </a>
-                <p class="subtitle">By students, for students</p>
+                <div class="header-brand">
+                    <div class="logo-wrapper">
+                        <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+                        <div class="logo-glow"></div>
+                    </div>
+                    <div class="header-content">
+                        <a href="/" style="text-decoration: none; color: inherit;">
+                            <h1>Planificador UDG</h1>
+                        </a>
+                        <p class="subtitle">By students, for students</p>
+                    </div>
+                </div>
             </div>
             <nav class="header-nav">
                 <a href="/planner" class="nav-link active">Horarios</a>
@@ -90,19 +127,25 @@
 
         <main class="main-content">
             <aside class="left-panel">
-                <div class="search-panel">
-                    <h2>🔍 Buscar Materias</h2>
+                <div class="search-panel planner-search-panel">
+                    <h2 class="planner-search-title">
+                        <i class="fas fa-search"></i> Buscar Materias
+                    </h2>
                     <div class="form-group">
-                        <label for="ciclo">Ciclo Escolar</label>
-                        <select id="ciclo" class="form-control">
+                        <label for="ciclo" class="planner-label">
+                            <i class="far fa-calendar-alt"></i> Ciclo Escolar
+                        </label>
+                        <select id="ciclo" class="form-control planner-select">
                             <option value="202610">2026-A</option>
                             <option value="202520">2025-B</option>
                             <option value="202510">2025-A</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="centro">Centro Universitario</label>
-                        <select id="centro" class="form-control">
+                        <label for="centro" class="planner-label">
+                            <i class="fas fa-university"></i> Centro Universitario
+                        </label>
+                        <select id="centro" class="form-control planner-select">
                             <option value="">Selecciona un centro...</option>
                             {% for codigo, nombre in centros.items() %}
                             <option value="{{ codigo }}">{{ nombre }}</option>
@@ -110,16 +153,19 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="carrera">Carrera (Opcional)</label>
-                        <input type="text" id="carrera" class="form-control" placeholder="Ej: INCO, IINF">
+                        <label for="carrera" class="planner-label">
+                            <i class="fas fa-graduation-cap"></i> Carrera (Opcional)
+                        </label>
+                        <input type="text" id="carrera" class="form-control planner-input" placeholder="Ej: INCO, IINF">
+                        <small>Escribe el nombre o siglas de tu carrera</small>
                     </div>
-                    <button id="btnBuscar" class="btn btn-primary" style="width: 100%;">
-                        Buscar Materias
+                    <button id="btnBuscar" class="btn btn-primary planner-btn-buscar">
+                        <i class="fas fa-search-plus"></i> <span class="btn-text">Buscar Materias</span>
                     </button>
 
-                    <div id="loading" class="loading" style="display: none;">
-                        <div class="spinner"></div>
-                        <p>Consultando SIIAU...</p>
+                    <div id="loading" class="planner-loading">
+                        <div class="planner-spinner"></div>
+                        <p class="planner-loading-text">Buscando secciones disponibles...</p>
                     </div>
                 </div>
 
@@ -137,7 +183,7 @@
             <section class="right-panel">
                 <div class="calendar-panel">
                     <div class="calendar-header">
-                        <h2>📅 Mi Horario</h2>
+                        <h2>Mi Horario</h2>
                         <button id="btnLimpiarHorario" class="btn btn-outline" style="color: var(--danger);">
                             Limpiar Todo
                         </button>
@@ -154,7 +200,7 @@
                     </div>
 
                     <div id="legendItems" class="planner-legend">
-                        <p class="planner-empty-message">Selecciona materias del panel izquierdo.</p>
+                        <p class="planner-empty-message">Selecciona materias del panel.</p>
                     </div>
 
                     {% if user %}
@@ -169,24 +215,29 @@
                         </button>
                     </div>
                     {% else %}
-                    <div class="planner-auth-promo">
-                        <p class="planner-auth-promo-text">¿Quieres guardar tu horario? <a href="/login">Inicia
-                                sesión</a> o <a href="/signup">crea
-                                una cuenta</a> gratis.</p>
+                    <div class="planner-auth-promo animate-in">
+                        <div class="promo-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <h3 class="promo-title">¡Guarda tu Horario!</h3>
+                        <p class="planner-auth-promo-text">No pierdas tus combinaciones ideales. Crea una cuenta
+                            gratuita para guardar, gestionar y compartir tus horarios en cualquier momento.</p>
+                        <div class="promo-actions">
+                            <a href="/signup" class="btn-promo-primary">Registrarse Gratis</a>
+                            <a href="/login" class="btn-promo-outline">Iniciar Sesión</a>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
             </section>
         </main>
     </div>
-    </main>
 
     <footer class="l-footer">
         <div class="footer-bottom">
             <p>&copy; 2026 Planificador UDG. Diseña tu futuro.</p>
         </div>
     </footer>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}?v=6"></script>
