@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Planificador UDG: Organiza tus horarios, califica profesores y descubre beneficios exclusivos para estudiantes de la UDG.">
+    <meta name="description"
+        content="Planificador UDG: Organiza tus horarios, califica profesores y descubre beneficios exclusivos para estudiantes de la UDG.">
     <title>Planificador UDG - Tu Portal Universitario</title>
-    <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+    <link rel="icon" href="https://www.planificadorudg.tech/static/assets/icon.png" type="image/png" sizes="192x192">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='assets/icon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
     <div class="container" style="background: #f8fafc; box-shadow: none;">
         <header class="main-header" style="background: white; border-radius: 18px 18px 0 0;">
@@ -20,18 +23,21 @@
                 </div>
             </div>
             <div class="header-actions">
-                <a href="/planner" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-calendar-alt"></i> Horarios</a>
-                <a href="/professors" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-chalkboard-teacher"></i> Profesores</a>
-                <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
+                <a href="/planner" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i
+                        class="fas fa-calendar-alt"></i> Horarios</a>
+                <a href="/professors" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i
+                        class="fas fa-chalkboard-teacher"></i> Profesores</a>
+                <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm"
+                    style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
                 {% if user %}
                 <div class="user-menu">
-                    <span class="user-email">Hola, 
+                    <span class="user-email">Hola,
                         {% if profile and profile.full_name %}
-                            {{ profile.full_name }}
+                        {{ profile.full_name }}
                         {% elif user.user_metadata and user.user_metadata.full_name %}
-                            {{ user.user_metadata.full_name }}
+                        {{ user.user_metadata.full_name }}
                         {% else %}
-                            {{ user.email }}
+                        {{ user.email }}
                         {% endif %}
                     </span>
                     <a href="/dashboard" class="btn btn-primary btn-sm">Mi Dashboard</a>
@@ -48,7 +54,8 @@
 
         <section class="hero-section">
             <h1 class="hero-title">Tu vida universitaria, simplificada.</h1>
-            <p class="hero-subtitle">La herramienta definitiva para organizar tus horarios, evaluar profesores y descubrir beneficios.</p>
+            <p class="hero-subtitle">La herramienta definitiva para organizar tus horarios, evaluar profesores y
+                descubrir beneficios.</p>
         </section>
 
         <div class="features-grid">
@@ -82,4 +89,5 @@
         </footer>
     </div>
 </body>
+
 </html>
