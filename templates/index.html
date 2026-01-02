@@ -3,91 +3,198 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#5a67d8">
     <meta name="description"
-        content="Planificador UDG: Organiza tus horarios, califica profesores y descubre beneficios exclusivos para estudiantes de la UDG.">
+        content="Planificador UDG: La herramienta de estudiantes para estudiantes. Organiza tus horarios, califica profesores y descubre beneficios exclusivos.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.planificadorudg.tech/">
+    <meta property="og:title" content="Planificador UDG - Tu Portal Universitario">
+    <meta property="og:description"
+        content="Organiza tus horarios del SIIAU de forma visual y rápida. Evalúa profesores y conoce tus beneficios.">
+    <meta property="og:image" content="https://www.planificadorudg.tech/static/assets/tw_icon.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.planificadorudg.tech/">
+    <meta property="twitter:title" content="Planificador UDG - Tu Portal Universitario">
+    <meta property="twitter:description"
+        content="Organiza tus horarios del SIIAU de forma visual y rápida. Evalúa profesores y conoce tus beneficios.">
+    <meta property="twitter:image" content="https://www.planificadorudg.tech/static/assets/tw_icon.png">
+
     <title>Planificador UDG - Tu Portal Universitario</title>
+
+    <!-- Favicons -->
     <link rel="icon" href="https://www.planificadorudg.tech/static/assets/icon.png" type="image/png" sizes="192x192">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='assets/icon.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+
+    <!-- Fonts and Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
-<body>
-    <div class="container" style="background: #f8fafc; box-shadow: none;">
-        <header class="main-header" style="background: white; border-radius: 18px 18px 0 0;">
+<body class="landing-page">
+    <div class="glass-bg"></div>
+
+    <div class="l-container">
+        <header class="l-header glass">
             <div class="header-brand">
-                <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+                <div class="logo-wrapper">
+                    <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+                    <div class="logo-glow"></div>
+                </div>
                 <div>
-                    <h1 class="header-title">Planificador UDG</h1>
+                    <h1 class="header-title">Planificador<span>UDG</span></h1>
+                    <p class="header-tagline">By students, for students</p>
                 </div>
             </div>
-            <div class="header-actions">
-                <a href="/planner" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i
-                        class="fas fa-calendar-alt"></i> Horarios</a>
-                <a href="/professors" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i
-                        class="fas fa-chalkboard-teacher"></i> Profesores</a>
-                <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm"
-                    style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
+
+            <nav class="header-nav">
+                <a href="/planner" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Horarios</span></a>
+                <a href="/professors" class="nav-link"><i
+                        class="fas fa-chalkboard-teacher"></i><span>Profesores</span></a>
+                <a href="https://beneficios.diferente.page/" target="_blank" class="nav-link"><i
+                        class="fas fa-gift"></i><span>Beneficios</span></a>
+            </nav>
+
+            <div class="header-auth">
                 {% if user %}
-                <div class="user-menu">
-                    <span class="user-email">Hola,
+                <div class="user-pill glass">
+                    <span class="user-email">
                         {% if profile and profile.full_name %}
-                        {{ profile.full_name }}
+                        {{ profile.full_name.split(' ')[0] }}
                         {% elif user.user_metadata and user.user_metadata.full_name %}
-                        {{ user.user_metadata.full_name }}
+                        {{ user.user_metadata.full_name.split(' ')[0] }}
                         {% else %}
-                        {{ user.email }}
+                        Usuario
                         {% endif %}
                     </span>
-                    <a href="/dashboard" class="btn btn-primary btn-sm">Mi Dashboard</a>
-                    <a href="/logout" class="btn btn-outline btn-sm">Salir</a>
+                    <div class="user-dropdown">
+                        <a href="/dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+                        <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Salir</a>
+                    </div>
                 </div>
                 {% else %}
-                <div class="auth-buttons">
-                    <a href="/login" class="btn btn-primary btn-sm">Iniciar Sesión</a>
-                    <a href="/signup" class="btn btn-outline btn-sm">Registrarse</a>
+                <div class="auth-group">
+                    <a href="/login" class="l-btn l-btn-text">Entrar</a>
+                    <a href="/signup" class="l-btn l-btn-primary">Empezar</a>
                 </div>
                 {% endif %}
+                <button class="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
             </div>
         </header>
 
-        <section class="hero-section">
-            <h1 class="hero-title">Tu vida universitaria, simplificada.</h1>
-            <p class="hero-subtitle">La herramienta definitiva para organizar tus horarios, evaluar profesores y
-                descubrir beneficios.</p>
-        </section>
+        <main>
+            <section class="l-hero">
+                <div class="hero-content">
+                    <div class="badge-new">NUEVO: Calificaciones de Profesores ✨</div>
+                    <h1 class="hero-title">Tu vida universitaria, <span>simplificada.</span></h1>
+                    <p class="hero-subtitle">La plataforma premium diseñada para que los estudiantes de la UDG tomen el
+                        control de su carrera. Sin complicaciones, sin pérdidas de tiempo.</p>
+                    <div class="hero-actions">
+                        <a href="/planner" class="l-btn l-btn-large l-btn-primary">Organizar mi Horario</a>
+                        <a href="/professors" class="l-btn l-btn-large l-btn-secondary">Ver Profesores</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="floating-card c1 glass"><i class="fas fa-check"></i> Sin traslapes</div>
+                    <div class="floating-card c2 glass"><i class="fas fa-star"></i> 4.8 Promedio</div>
+                    <div class="floating-card c3 glass"><i class="fas fa-user-graduate"></i> +5k Usuarios</div>
+                    <div class="hero-main-img">
+                        <i class="fas fa-graduation-cap big-icon"></i>
+                    </div>
+                </div>
+            </section>
 
-        <div class="features-grid">
-            <!-- Opción 1: Hacer Horario -->
-            <a href="/planner" class="feature-card">
-                <div class="feature-icon"><i class="fas fa-calendar-alt" style="color: #3b82f6;"></i></div>
-                <h3>Hacer tu Horario</h3>
-                <p>Busca materias del SIIAU y diseña tu horario ideal sin traslapes de forma visual y rápida.</p>
-                <span class="btn-feature">Ir al Planificador</span>
-            </a>
+            <section class="l-features">
+                <div class="section-header">
+                    <h2 class="section-title">Todo lo que necesitas en un solo lugar</h2>
+                </div>
+                <div class="l-grid">
+                    <a href="/planner" class="l-card glass">
+                        <div class="card-icon blue"><i class="fas fa-calendar-day"></i></div>
+                        <h3>Planificador Inteligente</h3>
+                        <p>Busca materias en tiempo real y construye tu horario perfecto con un sistema visual de
+                            arrastrar y soltar.</p>
+                        <span class="card-link">Explorar <i class="fas fa-arrow-right"></i></span>
+                    </a>
 
-            <!-- Opción 2: Calificar Profesores -->
-            <a href="/professors" class="feature-card">
-                <div class="feature-icon"><i class="fas fa-chalkboard-teacher" style="color: #10b981;"></i></div>
-                <h3>Calificar Profesores</h3>
-                <p>Consulta opiniones de otros alumnos y califica a tus docentes para ayudar a la comunidad.</p>
-                <span class="btn-feature">Ver Profesores</span>
-            </a>
+                    <a href="/professors" class="l-card glass">
+                        <div class="card-icon green"><i class="fas fa-user-tie"></i></div>
+                        <h3>Opiniones Reales</h3>
+                        <p>No te arriesgues. Consulta las evaluaciones de otros estudiantes sobre profesores antes de
+                            agendar.</p>
+                        <span class="card-link">Revisar <i class="fas fa-arrow-right"></i></span>
+                    </a>
 
-            <!-- Opción 3: Beneficios UDG -->
-            <a href="https://beneficios.diferente.page/" target="_blank" class="feature-card">
-                <div class="feature-icon"><i class="fas fa-gift" style="color: #f59e0b;"></i></div>
-                <h3>Beneficios UDG</h3>
-                <p>Descubre todos los descuentos, convenios y beneficios que tienes por ser estudiante de la UDG.</p>
-                <span class="btn-feature">Ver Beneficios</span>
-            </a>
-        </div>
+                    <a href="https://beneficios.diferente.page/" target="_blank" class="l-card glass">
+                        <div class="card-icon orange"><i class="fas fa-ticket-alt"></i></div>
+                        <h3>Club de Beneficios</h3>
+                        <p>Descuentos exclusivos en comida, servicios y tecnología solo por ser parte de nuestra
+                            comunidad.</p>
+                        <span class="card-link">Descubrir <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                </div>
+            </section>
+        </main>
 
-        <footer style="text-align: center; padding: 40px; color: #94a3b8; font-size: 0.9rem;">
-            &copy; 2025 Planificador UDG - Proyecto estudiantil.
+        <footer class="l-footer">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h2 class="footer-logo">Planificador<span>UDG</span></h2>
+                    <p>Potenciando el éxito estudiantil en cada semestre.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <p class="group-title">Plataforma</p>
+                        <a href="/planner">Planificador</a>
+                        <a href="/professors">Profesores</a>
+                        <a href="/pricing">Planes Pro</a>
+                    </div>
+                    <div class="link-group">
+                        <p class="group-title">Comunidad</p>
+                        <a href="https://beneficios.diferente.page/">Beneficios</a>
+                        <a href="#">Sugerencias</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Planificador UDG. Hecho con <i class="fas fa-heart" style="color: #ff4d4d;"></i> para la
+                    comunidad.</p>
+            </div>
         </footer>
     </div>
+
+    <script>
+        // Micro-animations and mobile menu
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            const nav = document.querySelector('.l-header');
+
+            toggle?.addEventListener('click', () => {
+                nav.classList.toggle('nav-open');
+            });
+
+            // Intersection Observer for scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.l-card').forEach(card => observer.observe(card));
+        });
+    </script>
 </body>
 
 </html>
