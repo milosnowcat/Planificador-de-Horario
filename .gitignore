@@ -27,3 +27,6 @@ Thumbs.db
 
 # Otros temporales
 *.log
+
+# Supabase
+.env
