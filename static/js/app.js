@@ -104,12 +104,24 @@ function mostrarMaterias(materias) {
             };
         }
         if (materia.Horas && materia.Dias) {
-            materiasAgrupadas[key].horarios.push({
+            const nuevoHorario = {
                 horas: materia.Horas,
                 dias: materia.Dias,
                 edificio: materia.Edificio,
                 aula: materia.Aula
-            });
+            };
+            
+            // Check if this exact horario already exists to prevent duplicates
+            const existe = materiasAgrupadas[key].horarios.some(h => 
+                h.horas === nuevoHorario.horas &&
+                h.dias === nuevoHorario.dias &&
+                h.edificio === nuevoHorario.edificio &&
+                h.aula === nuevoHorario.aula
+            );
+            
+            if (!existe) {
+                materiasAgrupadas[key].horarios.push(nuevoHorario);
+            }
         }
     });
 
