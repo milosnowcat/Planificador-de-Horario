@@ -2,9 +2,64 @@
 
 > Aplicación web completa para planificar horarios académicos, consultar materias disponibles y evaluar profesores de la Universidad de Guadalajara.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/Flask-2.0+-green.svg" alt="Flask">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+  <img src="https://img.shields.io/badge/UDG-SIIAU-red.svg" alt="UDG">
+</p>
+
+<p align="center">
+  <a href="#-características-principales">Características</a> •
+  <a href="#-demo">Demo</a> •
+  <a href="#-instalación">Instalación</a> •
+  <a href="#-guía-de-uso">Guía de Uso</a> •
+  <a href="#-tecnologías">Tecnologías</a> •
+  <a href="#-contribuir">Contribuir</a>
+</p>
+
+---
+
+## 📸 Demo
+
+<div align="center">
+
+### Vista del Planificador
+> _Interfaz intuitiva con calendario semanal y detección automática de conflictos_
+
+### Dashboard de Usuario
+> _Gestiona múltiples horarios y accede a todas las funcionalidades_
+
+### Evaluación de Profesores
+> _Sistema anónimo de calificaciones con múltiples categorías_
+
+</div>
+
+> **💡 Nota**: Este proyecto te permite consultar materias del SIIAU, crear horarios personalizados, guardarlos en tu cuenta, exportarlos en PDF y calificar a tus profesores de manera anónima.
+
+---
+
+## ⚡ Inicio Rápido
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/moisesibanez17/Planificador-de-Horario.git
+cd Planificador-de-Horario
+
+# Crear entorno virtual e instalar dependencias
+python -m venv venv
+venv\Scripts\activate  # En Windows
+pip install -r requirements.txt
+
+# Configurar variables de entorno (ver sección Instalación)
+# Crear archivo .env con tus credenciales de Supabase
+
+# Ejecutar la aplicación
+python app.py
+```
+
+Luego abre tu navegador en **http://localhost:5000** 🚀
 
 ---
 
@@ -182,7 +237,7 @@ La aplicación estará disponible en: **http://localhost:5000**
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías
 
 ### Backend
 - **Flask** - Framework web de Python
