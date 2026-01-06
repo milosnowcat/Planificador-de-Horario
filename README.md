@@ -1,88 +1,321 @@
 ﻿# 📚 Planificador de Horario Académico - SIIAU UDG
 
-Aplicación para extraer y planificar horarios académicos de la oferta del SIIAU de la Universidad de Guadalajara.
+> Aplicación web completa para planificar horarios académicos, consultar materias disponibles y evaluar profesores de la Universidad de Guadalajara.
 
-## 🌟 Características
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### Aplicación Web (Nueva)
-- **Búsqueda de Materias**: Busca materias por centro universitario y carrera
-- **Calendario Semanal Interactivo**: Visualiza tu horario en un calendario visual
-- **Detección de Conflictos**: Alerta automática cuando hay traslape de horarios
-- **Interfaz Intuitiva**: Diseño moderno y fácil de usar
-- **Colores Automáticos**: Cada materia se asigna un color diferente
-- **Información Completa**: Ve horarios, profesores, edificios y aulas
+---
+
+## 🌟 Características Principales
+
+### 📅 Planificador de Horarios
+- **Búsqueda de materias** por centro universitario y carrera
+- **Calendario semanal interactivo** con visualización de 7:00 AM a 9:00 PM
+- **Detección automática de conflictos** de horario
+- **Colores automáticos** para identificar cada materia fácilmente
+- **Exportación a PDF** con calendario visual profesional
+- **Múltiples horarios** personalizados guardados en tu cuenta
+
+### 👤 Sistema de Usuarios
+- **Registro y autenticación** con Supabase
+- **Confirmación por email** para validar cuentas
+- **Recuperación de contraseña** mediante email
+- **Dashboard personalizado** para gestionar horarios
+- **Sesiones seguras** con Flask
+
+### 👨‍🏫 Evaluación de Profesores
+- **Búsqueda de profesores** con autocompletado
+- **Calificaciones anónimas** en múltiples categorías:
+  - Claridad de explicación
+  - Disponibilidad
+  - Justicia en evaluaciones
+  - Puntualidad
+- **Visualización de promedios** y estadísticas
+- **Comentarios opcionales** sobre experiencias
+
+### 📄 Generación de PDFs
+- **Calendario visual** con horarios organizados por día y hora
+- **Tabla detallada** con información completa de cada materia
+- **Códigos de colores** para identificar materias
+- **Información completa**: NRC, profesor, edificio, aula, días y horarios
+
+### 💬 Sistema de Retroalimentación
+- Envío de **sugerencias y reportes** de errores
+- Interfaz dedicada para **feedback de usuarios**
+
+---
 
 ## 🚀 Instalación
 
-### Aplicación Web
-1. Instala las dependencias:
+### Requisitos Previos
+- Python 3.8 o superior
+- Cuenta en [Supabase](https://supabase.com) (gratis)
+- Git
+
+### Paso 1: Clonar el Repositorio
+```bash
+git clone https://github.com/moisesibanez17/Planificador-de-Horario.git
+cd Planificador-de-Horario
+```
+
+### Paso 2: Crear Entorno Virtual
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/macOS
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Paso 3: Instalar Dependencias
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Ejecuta la aplicación web:
+### Paso 4: Configurar Variables de Entorno
+Crea un archivo `.env` en la raíz del proyecto con las siguientes variables:
+
+```env
+# Supabase Configuration
+SUPABASE_URL=tu_supabase_url
+SUPABASE_KEY=tu_supabase_anon_key
+
+# Flask Configuration
+FLASK_SECRET=tu_clave_secreta_aqui
+```
+
+> **Nota**: Obtén tus credenciales de Supabase desde el [dashboard de tu proyecto](https://app.supabase.com)
+
+### Paso 5: Configurar Base de Datos en Supabase
+
+Ejecuta las siguientes consultas SQL en el SQL Editor de Supabase:
+
+```sql
+-- Tabla de horarios
+CREATE TABLE schedules (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tabla de items de horario
+CREATE TABLE schedule_items (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  schedule_id UUID REFERENCES schedules(id) ON DELETE CASCADE,
+  nrc TEXT,
+  materia TEXT,
+  clave TEXT,
+  seccion TEXT,
+  creditos TEXT,
+  cupo TEXT,
+  disponible TEXT,
+  profesor TEXT,
+  edificio TEXT,
+  aula TEXT,
+  dias TEXT,
+  horas TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tabla de calificaciones de profesores
+CREATE TABLE professor_ratings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  professor_name TEXT NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  clarity INTEGER CHECK (clarity BETWEEN 1 AND 5),
+  availability INTEGER CHECK (availability BETWEEN 1 AND 5),
+  fairness INTEGER CHECK (fairness BETWEEN 1 AND 5),
+  punctuality INTEGER CHECK (punctuality BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Índices para mejor rendimiento
+CREATE INDEX idx_schedules_user_id ON schedules(user_id);
+CREATE INDEX idx_schedule_items_schedule_id ON schedule_items(schedule_id);
+CREATE INDEX idx_professor_ratings_name ON professor_ratings(professor_name);
+```
+
+### Paso 6: Ejecutar la Aplicación
 ```bash
 python app.py
 ```
 
-3. Abre tu navegador en:
+La aplicación estará disponible en: **http://localhost:5000**
+
+---
+
+## 📖 Guía de Uso
+
+### 1️⃣ Crear una Cuenta
+1. Haz clic en **"Registrarse"** en la página principal
+2. Completa el formulario con tu información
+3. Verifica tu email (revisa tu bandeja de spam)
+4. Inicia sesión con tus credenciales
+
+### 2️⃣ Crear un Horario
+1. Accede a **Dashboard** → **Crear Horario**
+2. Ingresa un nombre para tu horario
+3. Selecciona tu **centro universitario**
+4. Ingresa el **código de carrera** (opcional)
+5. Haz clic en **"Buscar Materias"**
+6. Haz clic en las materias para agregarlas
+7. Guarda tu horario
+
+### 3️⃣ Evaluar Profesores
+1. Ve a la sección **"Profesores"**
+2. Busca el nombre del profesor
+3. Califica en las diferentes categorías
+4. Agrega comentarios opcionales
+5. Envía tu evaluación (anónima)
+
+### 4️⃣ Exportar a PDF
+1. Abre el horario que deseas exportar
+2. Haz clic en **"Descargar PDF"**
+3. El archivo se descargará automáticamente
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+### Backend
+- **Flask** - Framework web de Python
+- **Supabase** - Base de datos PostgreSQL y autenticación
+- **BeautifulSoup4** - Web scraping del SIIAU
+- **ReportLab** - Generación de PDFs
+- **python-dotenv** - Gestión de variables de entorno
+
+### Frontend
+- **HTML5** - Estructura semántica
+- **CSS3** - Diseño moderno y responsive
+- **JavaScript (Vanilla)** - Interactividad del cliente
+- **Fetch API** - Comunicación con el backend
+
+### Otros
+- **Requests** - Peticiones HTTP al SIIAU
+- **Pandas** - Procesamiento de datos
+- **LiveReload** - Recarga automática durante desarrollo
+
+---
+
+## 📂 Estructura del Proyecto
+
 ```
-http://localhost:5000
+Planificador-de-Horario/
+│
+├── app.py                      # Aplicación principal Flask
+├── supabase_client.py          # Cliente de Supabase
+├── requirements.txt            # Dependencias del proyecto
+├── .env                        # Variables de entorno (no versionado)
+├── .gitignore                  # Archivos ignorados por Git
+│
+├── templates/                  # Plantillas HTML
+│   ├── index.html             # Página de inicio
+│   ├── planner.html           # Planificador público
+│   ├── signin.html            # Inicio de sesión
+│   ├── signup.html            # Registro
+│   ├── dashboard.html         # Panel de usuario
+│   ├── schedule_detail.html   # Detalle de horario
+│   ├── professors.html        # Evaluación de profesores
+│   ├── feedback.html          # Formulario de retroalimentación
+│   ├── pricing.html           # Planes de precios
+│   ├── forgot_password.html   # Recuperar contraseña
+│   ├── reset_password.html    # Restablecer contraseña
+│   └── confirmation.html      # Confirmación de email
+│
+└── static/                     # Archivos estáticos
+    ├── css/                   # Estilos CSS
+    ├── js/                    # Scripts JavaScript
+    └── images/                # Imágenes y recursos
 ```
 
-## 📖 Uso de la Aplicación Web
+---
 
-1. **Selecciona tu centro universitario** del menú desplegable
-2. **Ingresa el código de tu carrera** (opcional, déjalo vacío para ver todas)
-3. **Haz clic en "Buscar Materias"** para cargar las opciones disponibles
-4. **Haz clic en cualquier materia** de la lista para agregarla al horario
-5. **Visualiza tu horario** en el calendario semanal
-6. **Remueve materias** haciendo clic en la X que aparece al pasar el mouse
+## 🔐 Seguridad
 
-## 🎨 Características Técnicas
+- ✅ **Autenticación segura** con Supabase
+- ✅ **Sesiones encriptadas** con Flask
+- ✅ **Variables de entorno** para credenciales sensibles
+- ✅ **Validación de formularios** en cliente y servidor
+- ✅ **Prevención de SQL injection** mediante ORM
+- ✅ **HTTPS recomendado** para producción
 
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Backend**: Flask (Python)
-- **Scraping**: BeautifulSoup4
-- **Diseño**: Responsive y adaptable a móviles
+---
 
-## 📱 Interfaz Web
+## 🐛 Solución de Problemas
 
-La aplicación cuenta con:
-- Panel lateral para búsqueda y lista de materias
-- Calendario semanal con vista de 7:00 AM a 9:00 PM
-- Leyenda de colores para identificar materias
-- Sistema de alertas para conflictos de horario
+### "Error al conectar con Supabase"
+- Verifica que las variables `SUPABASE_URL` y `SUPABASE_KEY` estén correctas en `.env`
+- Confirma que tu proyecto de Supabase esté activo
 
-## 🔧 Estructura del Proyecto
+### "Cookies de sesión inválidas"
+- Las cookies del SIIAU en `app.py` deben actualizarse periódicamente
+- Obtén nuevas cookies desde las herramientas de desarrollador de tu navegador
 
-```
-Avanzadas-UDG/
-├── app.py                 # Aplicación web Flask
-├── requirements.txt       # Dependencias
-├── templates/
-│   └── index.html        # Plantilla HTML principal
-└── static/
-    ├── css/
-    │   └── style.css     # Estilos
-    └── js/
-        └── app.js        # Lógica del cliente
-```
+### "Error al generar PDF"
+- Asegúrate de que ReportLab esté instalado: `pip install reportlab`
+- Verifica que tengas permisos de escritura en el directorio
 
-## 📝 Notas
+---
 
-- Las cookies de sesión en el código deben actualizarse periódicamente
-- La aplicación consulta directamente al sistema SIIAU de la UDG
-- Se recomienda usar con responsabilidad
+## 🤝 Contribuir
 
-## 📄 Requisitos
-- Python 3.8 o superior
-- Las dependencias listadas en `requirements.txt`
+¡Las contribuciones son bienvenidas! Si deseas mejorar este proyecto:
 
-## 👨‍💻 Créditos
-Desarrollado por Moises Ibañez
+1. Haz un **Fork** del repositorio
+2. Crea una **rama** para tu feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un **Pull Request**
 
-Para más información, consulta la documentación incluida o contacta al desarrollador.
+---
 
+## 📝 Notas Importantes
 
+- 🔄 Las **cookies de sesión** del SIIAU deben actualizarse periódicamente para mantener el scraping funcionando
+- ⚠️ La aplicación consulta directamente el sistema **SIIAU de la UDG** - úsala responsablemente
+- 📧 Para producción, configura el **servicio de email** en Supabase
+- 🌐 Centros universitarios soportados: CUCEI, CUCEA, CUCS, CUAAD, y más
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
+## 👨‍💻 Autor
+
+**Moises Ibañez**
+
+- GitHub: [@moisesibanez17](https://github.com/moisesibanez17)
+- Proyecto: [Planificador-de-Horario](https://github.com/moisesibanez17/Planificador-de-Horario)
+
+---
+
+## 🙏 Agradecimientos
+
+- Universidad de Guadalajara por el sistema SIIAU
+- Comunidad de desarrolladores de Flask y Python
+- Supabase por su excelente plataforma
+
+---
+
+## 📞 Soporte
+
+Si tienes preguntas o necesitas ayuda:
+- 🐛 Reporta bugs en [Issues](https://github.com/moisesibanez17/Planificador-de-Horario/issues)
+- 💡 Sugiere nuevas características en el formulario de feedback dentro de la aplicación
+- 📧 Contacta al desarrollador directamente
+
+---
+
+**¡Disfruta planificando tus horarios! 📚✨**
 
