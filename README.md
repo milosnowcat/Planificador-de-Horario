@@ -25,14 +25,14 @@
 
 <div align="center">
 
-### Vista del Planificador
-> _Interfaz intuitiva con calendario semanal y detección automática de conflictos_
+### Vista de inicio
+><img src="static\assets\home.png">
 
-### Dashboard de Usuario
-> _Gestiona múltiples horarios y accede a todas las funcionalidades_
+### Planificador de Horarios
+><img src="static\assets\planner.png">
 
 ### Evaluación de Profesores
-> _Sistema anónimo de calificaciones con múltiples categorías_
+><img src="static\assets\professors.png">
 
 </div>
 
