@@ -1,7 +1,18 @@
+# Core Framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Templating & Static Files
+jinja2
+aiofiles
+
+# Sessions
+itsdangerous
+
+# Existing Dependencies
 requests
 pandas
 beautifulsoup4
-flask
-livereload
 python-dotenv
 reportlab

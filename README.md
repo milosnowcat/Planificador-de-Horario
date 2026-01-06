@@ -198,11 +198,21 @@ CREATE INDEX idx_professor_ratings_name ON professor_ratings(professor_name);
 ```
 
 ### Paso 6: Ejecutar la Aplicación
+
+**FastAPI Version:**
+```bash
+uv icorn app:app --reload --port 5000
+```
+
+O directamente con Python:
 ```bash
 python app.py
 ```
 
 La aplicación estará disponible en: **http://localhost:5000**
+
+- **Docs Interactiva**: http://localhost:5000/api/docs
+- **ReDoc**: http://localhost:5000/api/redoc
 
 ---
 
@@ -240,7 +250,8 @@ La aplicación estará disponible en: **http://localhost:5000**
 ## 🛠️ Tecnologías
 
 ### Backend
-- **Flask** - Framework web de Python
+- **FastAPI** - Framework web moderno y rápido
+- **Uvicorn** - Servidor ASGI de alta performance
 - **Supabase** - Base de datos PostgreSQL y autenticación
 - **BeautifulSoup4** - Web scraping del SIIAU
 - **ReportLab** - Generación de PDFs
