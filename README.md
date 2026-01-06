@@ -12,11 +12,6 @@ Aplicación para extraer y planificar horarios académicos de la oferta del SIIA
 - **Colores Automáticos**: Cada materia se asigna un color diferente
 - **Información Completa**: Ve horarios, profesores, edificios y aulas
 
-### Aplicación de Escritorio (Original)
-- Interfaz gráfica con Tkinter
-- Búsqueda avanzada con filtros
-- Exportación de datos a CSV
-
 ## 🚀 Instalación
 
 ### Aplicación Web
@@ -33,17 +28,6 @@ python app.py
 3. Abre tu navegador en:
 ```
 http://localhost:5000
-```
-
-### Aplicación de Escritorio
-1. Instala las dependencias:
-```bash
-pip install -r requirements.txt
-```
-
-2. Ejecuta la interfaz de escritorio:
-```bash
-python gui.py
 ```
 
 ## 📖 Uso de la Aplicación Web
@@ -99,5 +83,6 @@ Avanzadas-UDG/
 Desarrollado por Moises Ibañez
 
 Para más información, consulta la documentación incluida o contacta al desarrollador.
+
 
 
