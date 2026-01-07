@@ -38,8 +38,6 @@
       </div>
       <div class="header-actions">
         <a href="/" class="btn btn-outline btn-sm" style="margin-right: 10px;"><i class="fas fa-home"></i> Inicio</a>
-        <a href="https://beneficios.diferente.page/" target="_blank" class="btn btn-outline btn-sm"
-          style="margin-right: 10px;"><i class="fas fa-gift"></i> Beneficios</a>
         <a href="/dashboard" class="btn btn-outline btn-sm">← Volver al Dashboard</a>
       </div>
     </header>
@@ -89,27 +87,10 @@
             <a href="/schedules/{{ schedule.id }}/download-pdf" class="btn btn-outline action-btn outline">📄 Descargar
               PDF</a>
 
-            {% if is_pro %}
             <button id="btnCompartir" class="btn btn-outline action-btn outline" type="button">🔗 Compartir</button>
-            {% else %}
-            <button class="btn btn-outline action-btn outline disabled" type="button" disabled
-              title="Solo disponible en Plan Pro">🔗 Compartir</button>
-            {% endif %}
 
             <button id="btnEliminar" class="btn action-btn danger" type="button">🗑️ Eliminar</button>
           </div>
-
-          {% if not is_pro %}
-          <div class="plan-warning-box">
-            <p class="plan-warning-title">
-              <strong>Plan Gratis</strong>
-            </p>
-            <p class="plan-warning-text">
-              PDF y Compartir disponibles solo en Plan Pro.
-            </p>
-            <a href="/pricing" class="plan-warning-link">Ver planes →</a>
-          </div>
-          {% endif %}
         </aside>
       </div>
 

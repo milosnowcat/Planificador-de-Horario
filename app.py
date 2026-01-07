@@ -284,7 +284,7 @@ def fetch_all_pages(session, post_url, payload_base):
     seen_any = False
     page = 0
 
-    while page < 5:
+    while page < 100:
         page += 1
         payload = dict(payload_base)
         payload['p_start'] = str(p_start)
@@ -304,9 +304,9 @@ def fetch_all_pages(session, post_url, payload_base):
                 if seen_any or page == 1:
                     break
 
-            next_button = soup.find('input', {'value': '100 Próximos'})
+            mostrar_val = int(payload_base.get('mostrarp', '100'))
+            next_button = soup.find('input', {'value': f'{mostrar_val} Próximos'}) or soup.find('input', {'value': '100 Próximos'})
             if next_button:
-                mostrar_val = int(payload_base.get('mostrarp', '100'))
                 p_start += mostrar_val
                 continue
 
@@ -619,10 +619,8 @@ async def planner_page(request: Request):
     """Página del planificador de horarios"""
     user = request.session.get('user')
     profile = None
-    is_pro = False
     if user and request.session.get('access_token'):
         profile = supabase_get_profile(request.session['access_token'], user['id'])
-        is_pro = profile.get('is_pro', False) if profile else False
     
     return CustomTemplateResponse(
         "planner.html",
@@ -630,8 +628,7 @@ async def planner_page(request: Request):
             "request": request,
             "centros": CENTROS,
             "user": user,
-            "profile": profile,
-            "is_pro": is_pro
+            "profile": profile
         }
     )
 
@@ -640,35 +637,17 @@ async def beneficios():
     """Redirige a la página externa de beneficios UDG"""
     return RedirectResponse(url="https://beneficios.diferente.page/", status_code=303)
 
-@app.get("/pricing", response_class=HTMLResponse)
-async def pricing_page(request: Request):
-    """Página de planes de precios"""
-    user = request.session.get('user')
-    is_pro = False
-    if user and request.session.get('access_token'):
-        profile = supabase_get_profile(request.session['access_token'], user['id'])
-        is_pro = profile.get('is_pro', False) if profile else False
-    return CustomTemplateResponse(
-        "pricing.html",
-        {"request": request, "user": user, "is_pro": is_pro}
-    )
-
 @app.get("/professors", response_class=HTMLResponse)
 async def professors_page(request: Request):
     """Página para calificar profesores"""
     user = request.session.get('user')
-    is_pro = False
-    if user and request.session.get('access_token'):
-        profile = supabase_get_profile(request.session['access_token'], user['id'])
-        is_pro = profile.get('is_pro', False) if profile else False
     
     return CustomTemplateResponse(
         "professors.html",
         {
             "request": request,
             "centros": CENTROS,
-            "user": user,
-            "is_pro": is_pro
+            "user": user
         }
     )
 
@@ -906,11 +885,14 @@ async def dashboard(request: Request):
     user_id = user.get('id')
     
     profile = supabase_get_profile(access_token, user_id)
-    is_pro = profile.get('is_pro', False) if profile else False
     
     schedules = supabase_get_schedules(access_token, user_id)
     
-    max_schedules = 999 if is_pro else 1
+    # Handle case where schedules might be None
+    if schedules is None:
+        schedules = []
+    
+    max_schedules = 3
     can_create_more = len(schedules) < max_schedules
     
     return CustomTemplateResponse(
@@ -920,7 +902,6 @@ async def dashboard(request: Request):
             "schedules": schedules,
             "user": user,
             "profile": profile,
-            "is_pro": is_pro,
             "can_create_more": can_create_more,
             "schedule_count": len(schedules),
             "max_schedules": max_schedules
@@ -950,12 +931,15 @@ async def create_schedule(
         if email:
             profile = supabase_create_profile_service(user_id, email, full_name)
 
-    is_pro = profile.get('is_pro', False) if profile else False
     schedules = supabase_get_schedules(access_token, user_id)
     
-    if not is_pro and len(schedules) >= 1:
-        flash(request, 'Límite alcanzado. Upgrade a Pro para crear más horarios', 'error')
-        return RedirectResponse(url="/", status_code=303)
+    # Handle case where schedules might be None
+    if schedules is None:
+        schedules = []
+    
+    if len(schedules) >= 3:
+        flash(request, 'Límite alcanzado. Máximo 3 horarios permitidos', 'error')
+        return RedirectResponse(url="/dashboard", status_code=303)
     
     name = name or 'Mi horario'
     
@@ -1070,7 +1054,6 @@ async def view_schedule(request: Request, schedule_id: str):
     materias = metadata.get('materias', [])
     
     profile = supabase_get_profile(access_token, user_id)
-    is_pro = profile.get('is_pro', False) if profile else False
     
     return CustomTemplateResponse(
         "schedule_detail.html",
@@ -1081,7 +1064,6 @@ async def view_schedule(request: Request, schedule_id: str):
             "materias": materias,
             "user": request.session.get('user'),
             "profile": profile,
-            "is_pro": is_pro,
             "centros": CENTROS
         }
     )

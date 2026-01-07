@@ -34,7 +34,6 @@
             {% else %}
             {{ user.email }}
             {% endif %}
-            {% if is_pro %}<span class="pro-badge">PRO</span>{% endif %}
           </div>
         </div>
       </div>
@@ -59,7 +58,6 @@
           <button class="btn" style="background: #e6e9ef; cursor: not-allowed;" disabled>
             Límite: {{ schedule_count }}/{{ max_schedules }}
           </button>
-          <a href="/pricing" class="btn btn-outline">Upgrade a Pro</a>
           {% endif %}
           <a href="/" class="btn btn-outline">Volver al inicio</a>
         </div>
@@ -80,9 +78,6 @@
           <h4>Estadísticas</h4>
           <p>
             Horarios: <strong>{{ schedule_count }}/{{ max_schedules }}</strong>
-          </p>
-          <p>
-            Plan: <strong>{% if is_pro %}PRO{% else %}Gratis{% endif %}</strong>
           </p>
         </div>
       </aside>

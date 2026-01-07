@@ -112,7 +112,16 @@
 
 .header-nav {
     display: flex;
-    gap: 8px;
+    gap: 16px;
+    align-items: center;
+}
+
+.user-info,
+.auth-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-left: auto;
 }
 
 .nav-link {
@@ -769,28 +778,30 @@ textarea.l-input {
 /* Polished Classic: Professor results */
 .prof-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
     margin-top: 24px;
+    padding: 8px;
 }
 
 .prof-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 24px;
+    border-radius: 16px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     text-align: left;
     align-items: stretch;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    min-height: 180px;
 }
 
 .prof-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px -8px rgba(102, 126, 234, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px -8px rgba(102, 126, 234, 0.2);
     border-color: #667eea;
 }
 
@@ -803,7 +814,7 @@ textarea.l-input {
 }
 
 .prof-name {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #1e293b;
     margin: 0;
@@ -812,23 +823,28 @@ textarea.l-input {
 }
 
 .rating-badge {
-    background: #f1f5f9;
-    padding: 6px 10px;
-    border-radius: 8px;
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 10px;
     text-align: right;
     flex-shrink: 0;
+    border: 1px solid #e2e8f0;
+}
+
+.rating-badge.active {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #fbbf24;
 }
 
 .rating-badge .stars {
     color: #d97706;
-    /* Darker amber for better contrast */
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     display: block;
     margin-bottom: 2px;
 }
 
 .rating-badge .count {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: #64748b;
     font-weight: 700;
 }
@@ -836,15 +852,20 @@ textarea.l-input {
 .prof-materias {
     display: flex;
     gap: 12px;
-    color: #475569;
-    font-size: 0.85rem;
+    color: #64748b;
+    font-size: 0.9rem;
     line-height: 1.6;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-top: auto;
 }
 
 .prof-materias i {
-    margin-top: 4px;
-    color: #4f46e5;
-    font-size: 0.9rem;
+    margin-top: 2px;
+    color: #667eea;
+    font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .card-btn {
@@ -4055,5 +4076,82 @@ header h1 {
     .btn-promo-outline {
         width: 100%;
         text-align: center;
+    }
+}
+
+/* Pagination Controls */
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 50px 20px 40px;
+    margin-top: 32px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.pagination-controls button {
+    min-width: 140px;
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.pagination-controls button:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-weight: 700;
+    color: #667eea;
+    min-width: 140px;
+    text-align: center;
+    font-size: 1rem;
+    padding: 12px 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Responsive adjustments for tablets and mobile */
+@media (max-width: 1200px) {
+    .prof-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .prof-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .prof-card {
+        padding: 20px;
+    }
+
+    .pagination-controls {
+        gap: 16px;
+        padding: 30px 16px;
+    }
+
+    .pagination-controls button {
+        min-width: 100px;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    .page-info {
+        min-width: 100px;
+        font-size: 0.9rem;
+        padding: 10px 12px;
     }
 }

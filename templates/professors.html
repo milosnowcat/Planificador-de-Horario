@@ -13,7 +13,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=9">
     <style>
         .header-brand {
             display: flex !important;
@@ -152,6 +152,15 @@
                         <p>Usa el panel para descubrir las evaluaciones de tus profesores.</p>
                     </div>
                 </div>
+                <div id="paginationControls" class="pagination-controls" style="display: none;">
+                    <button id="btnPrevPage" class="btn btn-outline btn-sm" disabled>
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                    <span id="pageInfo" class="page-info">Página 1 de 1</span>
+                    <button id="btnNextPage" class="btn btn-outline btn-sm">
+                        Siguiente <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </section>
         </main>
 
@@ -210,7 +219,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let allProfessors = [];
+        let filteredProfessors = [];
         let selectedProf = '';
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 50;
 
         document.getElementById('btnBuscar').addEventListener('click', async () => {
             const btn = document.getElementById('btnBuscar');
@@ -234,9 +246,12 @@
 
                 if (result.success) {
                     allProfessors = result.profesores;
-                    renderProfessors(allProfessors);
+                    filteredProfessors = [...allProfessors];
+                    currentPage = 1;
+                    renderCurrentPage();
                     document.getElementById('profCount').innerText = allProfessors.length;
                     document.getElementById('resultsHeader').style.display = 'block';
+                    document.getElementById('paginationControls').style.display = 'flex';
                 } else {
                     Swal.fire('Error', result.error, 'error');
                 }
@@ -249,40 +264,78 @@
             }
         });
 
-        function renderProfessors(list) {
+        function getTotalPages() {
+            return Math.ceil(filteredProfessors.length / ITEMS_PER_PAGE);
+        }
+
+        function goToPage(page) {
+            const totalPages = getTotalPages();
+            if (page < 1 || page > totalPages) return;
+
+            currentPage = page;
+            renderCurrentPage();
+
+            // Scroll to top of results
+            document.querySelector('.right-panel').scrollTop = 0;
+        }
+
+        function renderCurrentPage() {
             const container = document.getElementById('profList');
-            if (list.length === 0) {
+            const totalPages = getTotalPages();
+
+            if (filteredProfessors.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No se encontraron profesores.</p></div>';
+                document.getElementById('paginationControls').style.display = 'none';
                 return;
             }
 
-            container.innerHTML = list.map(p => {
-                const hasRating = p.rating_count > 0;
-                const roundedRating = Math.round(p.rating_average);
-                const stars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const currentProfessors = filteredProfessors.slice(start, end);
 
-                return `
-                <div class="prof-card animate-in">
-                    <div class="card-info">
-                        <div class="prof-header-meta">
-                            <h3 class="prof-name">${p.nombre}</h3>
-                            <div class="rating-badge ${hasRating ? 'active' : ''}">
-                                <span class="stars">${stars}</span>
-                                <span class="count">${hasRating ? p.rating_average + ' (' + p.rating_count + ')' : 'S/C'}</span>
-                            </div>
-                        </div>
-                        <div class="prof-materias">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>${p.materias.join(', ')}</span>
+            container.innerHTML = currentProfessors.map(createProfessorCard).join('');
+
+            // Update pagination controls
+            document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = currentPage === 1;
+            document.getElementById('btnNextPage').disabled = currentPage === totalPages;
+        }
+
+        function createProfessorCard(p) {
+            const hasRating = p.rating_count > 0;
+            const roundedRating = Math.round(p.rating_average);
+            const stars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
+
+            return `
+            <div class="prof-card animate-in">
+                <div class="card-info">
+                    <div class="prof-header-meta">
+                        <h3 class="prof-name">${p.nombre}</h3>
+                        <div class="rating-badge ${hasRating ? 'active' : ''}">
+                            <span class="stars">${stars}</span>
+                            <span class="count">${hasRating ? p.rating_average + ' (' + p.rating_count + ')' : 'S/C'}</span>
                         </div>
                     </div>
-                    <button onclick="openRateModal('${p.nombre}')" class="btn btn-outline btn-sm card-btn">
-                        Ver Detalles
-                    </button>
+                    <div class="prof-materias">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>${p.materias.join(', ')}</span>
+                    </div>
                 </div>
-                `;
-            }).join('');
+                <button onclick="openRateModal('${p.nombre}')" class="btn btn-outline btn-sm card-btn">
+                    Ver Detalles
+                </button>
+            </div>
+            `;
         }
+
+        // Pagination button handlers
+        document.getElementById('btnPrevPage').addEventListener('click', () => {
+            goToPage(currentPage - 1);
+        });
+
+        document.getElementById('btnNextPage').addEventListener('click', () => {
+            goToPage(currentPage + 1);
+        });
 
         document.getElementById('filterProf').addEventListener('input', applyFiltersAndSort);
         document.getElementById('sortProf').addEventListener('change', applyFiltersAndSort);
@@ -291,24 +344,26 @@
             const term = document.getElementById('filterProf').value.toLowerCase();
             const sortBy = document.getElementById('sortProf').value;
 
-            let filtered = allProfessors.filter(p =>
+            filteredProfessors = allProfessors.filter(p =>
                 p.nombre.toLowerCase().includes(term) ||
                 p.materias.some(m => m.toLowerCase().includes(term))
             );
 
             if (sortBy === 'name') {
-                filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                filteredProfessors.sort((a, b) => a.nombre.localeCompare(b.nombre));
             } else if (sortBy === 'rating_desc') {
-                filtered.sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0) || (b.rating_count - a.rating_count));
+                filteredProfessors.sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0) || (b.rating_count - a.rating_count));
             } else if (sortBy === 'rating_asc') {
-                filtered.sort((a, b) => {
+                filteredProfessors.sort((a, b) => {
                     const aVal = a.rating_count > 0 ? a.rating_average : 999;
                     const bVal = b.rating_count > 0 ? b.rating_average : 999;
                     return aVal - bVal || (a.rating_count - b.rating_count);
                 });
             }
 
-            renderProfessors(filtered);
+            // Reset to page 1 and render
+            currentPage = 1;
+            renderCurrentPage();
         }
 
         async function openRateModal(name) {
