@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script>
     // Supabase Auth Hash Handler (Cleaner AJAX version)
-    (function() {
+    (function () {
       if (window.location.hash && window.location.hash.includes('access_token')) {
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
@@ -34,18 +35,18 @@
             },
             body: JSON.stringify(data)
           })
-          .then(response => response.json())
-          .then(result => {
-            if (result.redirect) {
-              window.location.href = result.redirect;
-            } else if (result.error) {
-              console.error('Auth error:', result.error);
-              alert('Error de autenticación: ' + result.error);
-            }
-          })
-          .catch(err => {
-            console.error('Fetch error:', err);
-          });
+            .then(response => response.json())
+            .then(result => {
+              if (result.redirect) {
+                window.location.href = result.redirect;
+              } else if (result.error) {
+                console.error('Auth error:', result.error);
+                alert('Error de autenticación: ' + result.error);
+              }
+            })
+            .catch(err => {
+              console.error('Fetch error:', err);
+            });
         }
       }
     })();
@@ -65,12 +66,13 @@
     }
   </script>
 </head>
+
 <body>
   <div class="container" style="background: transparent; box-shadow: none; padding: 0;">
     <div class="auth-layout">
       <div class="auth-left">
         <h1>Planificador de Horario UDG</h1>
-        <p>Guarda y gestiona tus horarios, sincroniza entre dispositivos y exporta a PDF. Mejora a Pro para quitar anuncios.</p>
+        <p>Guarda y gestiona tus horarios, sincroniza entre dispositivos y exporta a PDF.</p>
         <div class="auth-info-badge">
           <div class="pro-badge">Beta</div>
           <div style="color:var(--muted);font-size:14px;">Aplicación estudiante — hecha para UDG</div>
@@ -82,13 +84,13 @@
         <p>Ingresa con tu correo para acceder a tus horarios</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-messages">
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
+        {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
         {% endwith %}
 
         <form class="auth-form" action="/auth/login" method="post">
@@ -104,7 +106,8 @@
           </div>
 
           <div style="text-align: right; margin-top: -5px;">
-            <a href="/forgot-password" style="font-size: 12px; color: var(--primary-600); text-decoration: none;">¿Olvidaste tu contraseña?</a>
+            <a href="/forgot-password"
+              style="font-size: 12px; color: var(--primary-600); text-decoration: none;">¿Olvidaste tu contraseña?</a>
           </div>
 
           <button class="btn btn-primary" type="submit">Entrar</button>
@@ -115,9 +118,11 @@
           <a class="btn btn-outline" href="/signup">Crear cuenta</a>
         </div>
 
-        <div style="margin-top:18px;color:var(--muted);font-size:13px;">También puedes registrarte con tu correo institucional en la sección de registro.</div>
+        <div style="margin-top:18px;color:var(--muted);font-size:13px;">También puedes registrarte con tu correo
+          institucional en la sección de registro.</div>
       </div>
     </div>
   </div>
 </body>
+
 </html>
