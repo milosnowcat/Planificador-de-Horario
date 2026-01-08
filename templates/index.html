@@ -14,7 +14,7 @@
     <meta property="og:title" content="Planificador UDG - Tu Portal Universitario">
     <meta property="og:description"
         content="Organiza tus horarios del SIIAU de forma visual y rápida. Evalúa profesores y conoce tus beneficios.">
-    <meta property="og:image" content="https://www.planificadorudg.tech/static/assets/tw_icon.png">
+    <meta property="og:image" content="{{ url_for('static', filename='assets/tw_icon.png', _external=True) }}">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
@@ -22,12 +22,12 @@
     <meta property="twitter:title" content="Planificador UDG - Tu Portal Universitario">
     <meta property="twitter:description"
         content="Organiza tus horarios del SIIAU de forma visual y rápida. Evalúa profesores y conoce tus beneficios.">
-    <meta property="twitter:image" content="https://www.planificadorudg.tech/static/assets/tw_icon.png">
+    <meta property="twitter:image" content="{{ url_for('static', filename='assets/tw_icon.png', _external=True) }}">
 
     <title>Planificador UDG - Tu Portal Universitario</title>
 
     <!-- Favicons -->
-    <link rel="icon" href="https://www.planificadorudg.tech/static/assets/icon.png" type="image/png" sizes="192x192">
+    <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}" type="image/png" sizes="48x48">
     <link rel="shortcut icon" href="{{ url_for('static', filename='assets/icon.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='assets/icon.png') }}">
 
