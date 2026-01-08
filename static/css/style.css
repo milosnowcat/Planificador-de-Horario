@@ -4155,3 +4155,128 @@ header h1 {
         padding: 10px 12px;
     }
 }
+
+/* PWA Install Button */
+.pwa-install-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    animation: slideUp 0.5s ease;
+}
+
+.pwa-install-button:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
+
+.pwa-install-button i {
+    font-size: 1.1rem;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* iOS Install Modal */
+.ios-install-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.ios-install-content {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.ios-install-content h3 {
+    margin: 0 0 16px 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+}
+
+.ios-install-content p {
+    color: #64748b;
+    margin-bottom: 16px;
+}
+
+.ios-install-content ol {
+    text-align: left;
+    color: #475569;
+    line-height: 1.8;
+    margin-bottom: 24px;
+    padding-left: 20px;
+}
+
+.ios-install-content ol li {
+    margin-bottom: 12px;
+}
+
+.ios-install-content strong {
+    color: #007AFF;
+    font-weight: 600;
+}
+
+.ios-share-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f4ff;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin: 0 4px;
+    vertical-align: middle;
+}
+
+.ios-share-icon svg {
+    display: block;
+}
+
+.ios-install-content i {
+    color: #667eea;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
