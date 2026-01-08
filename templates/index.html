@@ -14,7 +14,7 @@
     <meta property="og:title" content="Planificador UDG - Tu Portal Universitario">
     <meta property="og:description"
         content="Organiza tus horarios del SIIAU de forma visual y rápida. Evalúa profesores y conoce tus beneficios.">
-    <meta property="og:image" content="{{ url_for('static', filename='assets/tw_icon.png') }}">
+    <meta property="og:image" content="{{ url_for('static', path='assets/tw_icon.png') }}">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
@@ -22,17 +22,17 @@
     <meta property="twitter:title" content="Planificador UDG - Tu Portal Universitario">
     <meta property="twitter:description"
         content="Organiza tus horarios del SIIAU de forma visual y rápida. Evalúa profesores y conoce tus beneficios.">
-    <meta property="twitter:image" content="{{ url_for('static', filename='assets/tw_icon.png') }}">
+    <meta property="twitter:image" content="{{ url_for('static', path='assets/tw_icon.png') }}">
 
     <title>Planificador UDG - Tu Portal Universitario</title>
 
     <!-- Favicons -->
-    <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}" type="image/png" sizes="48x48">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='assets/icon.png') }}" type="image/png">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+    <link rel="icon" href="{{ url_for('static', path='assets/icon.png') }}" type="image/png" sizes="48x48">
+    <link rel="shortcut icon" href="{{ url_for('static', path='assets/icon.png') }}" type="image/png">
+    <link rel="apple-touch-icon" href="{{ url_for('static', path='assets/icon.png') }}">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="manifest" href="{{ url_for('static', path='manifest.json') }}">
 
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,7 +45,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
@@ -56,7 +56,7 @@
         <header class="l-header glass">
             <div class="header-brand">
                 <div class="logo-wrapper">
-                    <img src="{{ url_for('static', filename='assets/icon.png') }}" alt="Logo" class="header-logo">
+                    <img src="{{ url_for('static', path='assets/icon.png') }}" alt="Logo" class="header-logo">
                     <div class="logo-glow"></div>
                 </div>
                 <div>
