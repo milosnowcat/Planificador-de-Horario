@@ -1160,6 +1160,20 @@ async def buscar_materias(data: BuscarMateriasRequest):
             s.cookies.update(COOKIES)
             materias = fetch_all_pages(s, POST_URL, payload)
 
+        # Get professor ratings
+        ratings_averages, _ = supabase_get_all_professor_averages()
+        
+        # Add ratings to each materia
+        for materia in materias:
+            prof_name = materia.get('Profesor', '').strip()
+            if prof_name and prof_name != '.' and prof_name != 'POR ASIGNAR':
+                rating_data = ratings_averages.get(prof_name, {'average': 0, 'count': 0})
+                materia['ProfesorRating'] = rating_data['average']
+                materia['ProfesorRatingCount'] = rating_data['count']
+            else:
+                materia['ProfesorRating'] = 0
+                materia['ProfesorRatingCount'] = 0
+
         return {
             'success': True,
             'materias': materias,

@@ -110,15 +110,15 @@ function mostrarMaterias(materias) {
                 edificio: materia.Edificio,
                 aula: materia.Aula
             };
-            
+
             // Check if this exact horario already exists to prevent duplicates
-            const existe = materiasAgrupadas[key].horarios.some(h => 
+            const existe = materiasAgrupadas[key].horarios.some(h =>
                 h.horas === nuevoHorario.horas &&
                 h.dias === nuevoHorario.dias &&
                 h.edificio === nuevoHorario.edificio &&
                 h.aula === nuevoHorario.aula
             );
-            
+
             if (!existe) {
                 materiasAgrupadas[key].horarios.push(nuevoHorario);
             }
@@ -144,10 +144,19 @@ function mostrarMaterias(materias) {
             horariosHtml += `<div class="materia-horario">📅 ${h.dias} ${h.horas} - ${h.edificio} ${h.aula}</div>`;
         });
 
+        // Format professor rating display
+        let profesorHtml = `Profesor: ${materia.Profesor}`;
+        if (materia.ProfesorRating && materia.ProfesorRating > 0) {
+            const rating = materia.ProfesorRating;
+            const count = materia.ProfesorRatingCount || 0;
+            const stars = '⭐'.repeat(Math.round(rating));
+            profesorHtml = `Profesor: ${materia.Profesor} <span class="profesor-rating" title="${rating}/5 (${count} evaluaciones)">${stars} ${rating.toFixed(1)}</span>`;
+        }
+
         item.innerHTML = `
             <div class="materia-nombre">${materia.Materia}</div>
             <div class="materia-info">Clave: ${materia.Clave} | NRC: ${materia.NRC} | Sección: ${materia.Sec}</div>
-            <div class="materia-info">Profesor: ${materia.Profesor}</div>
+            <div class="materia-info">${profesorHtml}</div>
             <div class="materia-info">Créditos: ${materia.CR} | Disponibles: ${materia.DIS}</div>
             ${horariosHtml}
         `;
