@@ -872,9 +872,69 @@ textarea.l-input {
     margin-top: 8px;
 }
 
+@media (max-width: 768px) {
+    .prof-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 4px;
+    }
+
+    .prof-card {
+        padding: 20px;
+        min-height: auto;
+    }
+
+    .prof-header-meta {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .prof-name {
+        font-size: 1.1rem;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        line-height: 1.3;
+    }
+
+    .rating-badge {
+        align-self: flex-start;
+        width: auto;
+    }
+
+    .prof-materias {
+        font-size: 0.85rem;
+        padding: 10px;
+    }
+
+    .results-filters {
+        flex-direction: column;
+    }
+
+    .results-filters .form-control {
+        width: 100%;
+        max-width: none;
+        min-width: auto;
+    }
+}
+
 @media (max-width: 480px) {
     .prof-grid {
         grid-template-columns: 1fr;
+    }
+
+    .prof-card {
+        padding: 16px;
+    }
+
+    .prof-name {
+        font-size: 1rem;
+    }
+
+    .prof-materias {
+        font-size: 0.8rem;
+        padding: 8px;
+        gap: 8px;
     }
 
     .results-filters .form-control {
