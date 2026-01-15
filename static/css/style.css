@@ -1,5 +1,5 @@
 /* --- NEW DESIGN SYSTEM --- */
-.landing-page {
+:root {
     --brand-primary: #5a67d8;
     --brand-secondary: #764ba2;
     --brand-accent: #ff7a59;
@@ -9,12 +9,15 @@
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.4);
     --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+}
 
+body {
     background: var(--bg-main);
     color: var(--text-main);
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
     overflow-x: hidden;
+    margin: 0;
 }
 
 .glass-bg {

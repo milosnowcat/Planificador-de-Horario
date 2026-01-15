@@ -9,8 +9,12 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse, StreamingResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from pydantic import BaseModel
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Union
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -58,11 +62,21 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
+# Setup Rate Limiter
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Rate Limit Middleware (should be close to application layer)
+app.add_middleware(SlowAPIMiddleware)
+
 # Session middleware
 app.add_middleware(
     SessionMiddleware,
     secret_key=os.environ.get('FLASK_SECRET', 'dev-secret-changeme'),
-    max_age=86400  # 24 hours
+    max_age=86400,  # 24 hours
+    https_only=False,  # Set to True in Production
+    same_site='lax'
 )
 
 # Mount static files
@@ -570,7 +584,7 @@ class BuscarProfesoresRequest(BaseModel):
 
 class RateProfessorRequest(BaseModel):
     professor_name: str
-    rating: Dict[str, int]
+    rating: Union[int, Dict[str, int]]
     comment: Optional[str] = ""
 
 # ===== DEPENDENCIES =====
@@ -664,6 +678,7 @@ async def signup_view(request: Request):
     return CustomTemplateResponse("signup.html", {"request": request})
 
 @app.post("/auth/login")
+@limiter.limit("10/minute")
 async def auth_login(
     request: Request,
     email: str = Form(...),
@@ -1137,7 +1152,8 @@ async def download_schedule_pdf(request: Request, schedule_id: str):
 # ===== API ROUTES =====
 
 @app.post("/api/buscar_materias")
-async def buscar_materias(data: BuscarMateriasRequest):
+@limiter.limit("5/minute")
+async def buscar_materias(request: Request, data: BuscarMateriasRequest):
     """API para buscar materias"""
     try:
         payload = {
@@ -1242,21 +1258,31 @@ async def buscar_profesores(data: BuscarProfesoresRequest):
         return JSONResponse({'success': False, 'error': str(e)}, status_code=500)
 
 @app.post("/api/rate_professor")
-async def rate_professor(request: Request, data: RateProfessorRequest):
+@limiter.limit("10/minute")
+async def rate_professor(
+    request: Request,  
+    data: RateProfessorRequest,
+    user: dict = Depends(get_current_user)
+):
     """API para calificar a un profesor"""
     try:
         prof_name = data.professor_name
         rating = data.rating
         comment = data.comment or ''
         
-        if not prof_name or not rating:
+        if not prof_name:
             return JSONResponse({'success': False, 'error': 'Datos incompletos'}, status_code=400)
         
+        # User is already validated by Depends(get_current_user)
         access_token = request.session.get('access_token')
-        user_id = request.session.get('user', {}).get('id') if request.session.get('user') else None
+        user_id = user.get('id')
 
         # Convert rating dict to int (assuming it's a single rating value)
-        rating_value = rating.get('overall', 0) if isinstance(rating, dict) else int(rating)
+        rating_value = 0
+        if isinstance(rating, dict):
+            rating_value = rating.get('overall', 0)
+        else:
+            rating_value = int(rating)
 
         res, error_msg = supabase_add_professor_rating(
             access_token,
