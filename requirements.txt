@@ -16,3 +16,6 @@ pandas
 beautifulsoup4
 python-dotenv
 reportlab
+
+# Rate Limiting
+slowapi
