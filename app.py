@@ -29,6 +29,7 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors as reportlab_colors
 from datetime import datetime
 import json
+from functools import lru_cache  # OPTIMIZACIÓN: Para caché en memoria
 
 # Supabase imports
 from supabase_client import (
@@ -198,6 +199,28 @@ CENTROS = {
 
 # ===== Helper Functions =====
 
+# OPTIMIZACIÓN: Caché para ratings de profesores (reduce DB queries)
+_professor_ratings_cache = {'data': None, 'timestamp': 0}
+CACHE_TTL = 3600  # 1 hora en segundos
+
+def get_cached_professor_ratings():
+    """Obtiene ratings de profesores con caché de 1 hora"""
+    current_time = time.time()
+    
+    # Verificar si el caché es válido
+    if (_professor_ratings_cache['data'] is not None and 
+        (current_time - _professor_ratings_cache['timestamp']) < CACHE_TTL):
+        return _professor_ratings_cache['data']
+    
+    # Si no hay caché válido, obtener de Supabase
+    ratings_averages, _ = supabase_get_all_professor_averages()
+    
+    # Actualizar caché
+    _professor_ratings_cache['data'] = ratings_averages
+    _professor_ratings_cache['timestamp'] = current_time
+    
+    return ratings_averages
+
 def flash(request: Request, message: str, category: str = "info"):
     """Add a flash message to the session"""
     if "flash_messages" not in request.session:
@@ -297,14 +320,18 @@ def fetch_all_pages(session, post_url, payload_base):
     p_start = 0
     seen_any = False
     page = 0
+    
+    # OPTIMIZACIÓN: Reducir de 100 a 10 páginas para reducir CPU usage
+    MAX_PAGES = 10
 
-    while page < 100:
+    while page < MAX_PAGES:
         page += 1
         payload = dict(payload_base)
         payload['p_start'] = str(p_start)
 
         try:
-            resp = session.post(post_url, data=payload, timeout=30)
+            # OPTIMIZACIÓN: Aumentar timeout a 60s para evitar reintentos
+            resp = session.post(post_url, data=payload, timeout=60)
             if resp.status_code != 200:
                 break
 
@@ -1167,7 +1194,7 @@ async def buscar_materias(request: Request, data: BuscarMateriasRequest):
             "edifp": "",
             "aulap": "",
             "ordenp": "0",
-            "mostrarp": "500",
+            "mostrarp": "100",  # OPTIMIZACIÓN: Reducir de 500 a 100 para reducir parsing HTML
             "dispp": "1",
         }
 
@@ -1176,8 +1203,8 @@ async def buscar_materias(request: Request, data: BuscarMateriasRequest):
             s.cookies.update(COOKIES)
             materias = fetch_all_pages(s, POST_URL, payload)
 
-        # Get professor ratings
-        ratings_averages, _ = supabase_get_all_professor_averages()
+        # Get professor ratings (con caché de 1 hora)
+        ratings_averages = get_cached_professor_ratings()
         
         # Add ratings to each materia
         for materia in materias:
@@ -1217,7 +1244,7 @@ async def buscar_profesores(data: BuscarProfesoresRequest):
             "edifp": "",
             "aulap": "",
             "ordenp": "0",
-            "mostrarp": "500",
+            "mostrarp": "100",  # OPTIMIZACIÓN: Reducir de 500 a 100 para reducir parsing HTML
             "dispp": "1",
         }
 
@@ -1236,7 +1263,7 @@ async def buscar_profesores(data: BuscarProfesoresRequest):
                 if materia_nombre:
                     profesores_dict[prof].add(materia_nombre)
         
-        ratings_averages, _ = supabase_get_all_professor_averages()
+        # Usar caché para ratings (reduce queries a Supabase)\r\n        ratings_averages = get_cached_professor_ratings()
 
         profesores_lista = []
         for name in sorted(profesores_dict.keys()):
